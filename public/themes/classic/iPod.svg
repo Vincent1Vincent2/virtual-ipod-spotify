@@ -1,0 +1,81 @@
+<svg width="340" height="550" viewBox="0 0 340 550" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="iPod">
+<g id="Shell">
+<g id="Shell_2">
+<rect width="340" height="550" rx="30" fill="#FEFEFE"/>
+<rect x="1" y="1" width="338" height="548" rx="29" stroke="black" stroke-opacity="0.2" stroke-width="2"/>
+</g>
+</g>
+<g id="ScrollWheel">
+<g id="TouchRing">
+<circle id="Outer" cx="170" cy="402" r="100" fill="url(#paint0_linear_13_68)"/>
+</g>
+<g id="SelectButton">
+<circle id="Inner" cx="170.5" cy="401.5" r="37.5" fill="url(#paint1_radial_13_68)"/>
+</g>
+<g id="BackButton">
+<rect id="BackBox" x="72" y="384" width="30" height="35" fill="#D9D9D9" fill-opacity="0.01"/>
+<path id="Back" d="M86.646 396.099C86.9755 395.855 87.4418 396.09 87.4418 396.5V400.695C87.4418 400.777 87.5351 400.824 87.601 400.776L93.931 396.099C94.2605 395.855 94.7269 396.09 94.7269 396.5V407.5C94.7269 407.91 94.2605 408.145 93.931 407.901L87.601 403.224C87.5351 403.175 87.4418 403.222 87.4418 403.304L87.4418 407.5C87.4418 407.91 86.9755 408.145 86.646 407.901L79.2025 402.401C78.9325 402.202 78.9325 401.798 79.2025 401.598L86.646 396.099Z" fill="#F5F5F5"/>
+</g>
+<g id="SkipButton">
+<rect id="SkipBox" x="239" y="384" width="30" height="35" fill="#D9D9D9" fill-opacity="0.01"/>
+<path id="skip" d="M254.081 396.099C253.751 395.855 253.285 396.09 253.285 396.5L253.285 400.695C253.285 400.777 253.192 400.824 253.126 400.776L246.796 396.099C246.466 395.855 246 396.09 246 396.5V407.5C246 407.91 246.466 408.145 246.796 407.901L253.126 403.224C253.192 403.175 253.285 403.222 253.285 403.304L253.285 407.5C253.285 407.91 253.751 408.145 254.081 407.901L261.524 402.401C261.794 402.202 261.794 401.798 261.524 401.598L254.081 396.099Z" fill="#F5F5F5"/>
+</g>
+<g id="PlayPauseButton">
+<rect id="PlayPauseBox" x="153" y="463" width="35" height="35" fill="#D9D9D9" fill-opacity="0.01"/>
+<g id="PlayPause">
+<g id="shape">
+<path d="M171.429 475C171.192 475 171 475.192 171 475.429V486.571C171 486.808 171.192 487 171.429 487H174C174.237 487 174.429 486.808 174.429 486.571V475.429C174.429 475.192 174.237 475 174 475H171.429Z" fill="#F5F5F5"/>
+<path d="M178.286 475C178.049 475 177.857 475.192 177.857 475.429V486.571C177.857 486.808 178.049 487 178.286 487H180.857C181.094 487 181.286 486.808 181.286 486.571V475.429C181.286 475.192 181.094 475 180.857 475H178.286Z" fill="#F5F5F5"/>
+</g>
+<path id="shape_2" d="M159 475.4C159 475.072 159.373 474.884 159.637 475.079L167.216 480.678C167.432 480.838 167.432 481.161 167.216 481.321L159.637 486.921C159.373 487.116 159 486.928 159 486.6L159 475.4Z" fill="#F5F5F5"/>
+</g>
+</g>
+<g id="MenuButton">
+<rect id="MenuBox" x="145" y="312" width="50" height="30" fill="#D9D9D9" fill-opacity="0.01"/>
+<path id="MENU" d="M153.644 322.758H155.155L157.681 329.715L160.201 322.758H161.718L158.284 332H157.072L153.644 322.758ZM152.882 322.758H154.361L154.628 329.15V332H152.882V322.758ZM160.995 322.758H162.48V332H160.734V329.15L160.995 322.758ZM170.383 330.629V332H165.47V330.629H170.383ZM166.003 322.758V332H164.257V322.758H166.003ZM169.742 326.573V327.912H165.47V326.573H169.742ZM170.364 322.758V324.135H165.47V322.758H170.364ZM179.022 322.758V332H177.27L173.341 325.589V332H171.595V322.758H173.341L177.283 329.175V322.758H179.022ZM185.941 322.758H187.687V328.896C187.687 329.603 187.534 330.197 187.229 330.68C186.925 331.158 186.51 331.52 185.985 331.765C185.461 332.006 184.864 332.127 184.195 332.127C183.518 332.127 182.915 332.006 182.386 331.765C181.857 331.52 181.443 331.158 181.142 330.68C180.842 330.197 180.691 329.603 180.691 328.896V322.758H182.437V328.896C182.437 329.328 182.509 329.681 182.653 329.956C182.797 330.227 183 330.428 183.262 330.559C183.525 330.69 183.836 330.756 184.195 330.756C184.559 330.756 184.87 330.69 185.128 330.559C185.391 330.428 185.592 330.227 185.731 329.956C185.871 329.681 185.941 329.328 185.941 328.896V322.758Z" fill="white"/>
+</g>
+</g>
+<g id="Screen">
+<g id="Bezle">
+<path d="M28 37C28 31.4772 32.4772 27 38 27H303C308.523 27 313 31.4772 313 37V242C313 247.523 308.523 252 303 252H38C32.4771 252 28 247.523 28 242V37Z" fill="#434343" fill-opacity="0.8"/>
+<path d="M28 37C28 31.4772 32.4772 27 38 27H303C308.523 27 313 31.4772 313 37V242C313 247.523 308.523 252 303 252H38C32.4771 252 28 247.523 28 242V37Z" fill="#434343" fill-opacity="0.8"/>
+</g>
+<g id="Display" filter="url(#filter0_i_13_68)">
+<path d="M33 32H308V247H33V32Z" fill="#EDF6FF"/>
+<path d="M33 32H308V247H33V32Z" fill="#EDF6FF"/>
+</g>
+<g id="Header">
+<rect id="Rectangle 5" x="33" y="32" width="275" height="25" fill="url(#paint2_linear_13_68)"/>
+</g>
+</g>
+</g>
+<defs>
+<filter id="filter0_i_13_68" x="33" y="32" width="275" height="219" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+<feFlood flood-opacity="0" result="BackgroundImageFix"/>
+<feBlend mode="normal" in="SourceGraphic" in2="BackgroundImageFix" result="shape"/>
+<feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha"/>
+<feOffset dy="4"/>
+<feGaussianBlur stdDeviation="2"/>
+<feComposite in2="hardAlpha" operator="arithmetic" k2="-1" k3="1"/>
+<feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.25 0"/>
+<feBlend mode="normal" in2="shape" result="effect1_innerShadow_13_68"/>
+</filter>
+<linearGradient id="paint0_linear_13_68" x1="270" y1="313.5" x2="83.5" y2="447.5" gradientUnits="userSpaceOnUse">
+<stop stop-color="#CED5DF"/>
+<stop offset="0.0844788" stop-color="#E1E1E1"/>
+<stop offset="0.349197" stop-color="#CCCCCC"/>
+<stop offset="0.982874" stop-color="#A8A8A8"/>
+</linearGradient>
+<radialGradient id="paint1_radial_13_68" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(170 439) rotate(-90) scale(111.5)">
+<stop stop-color="#FCFCFE"/>
+<stop offset="0.372432" stop-color="#DCDCDD"/>
+<stop offset="0.548973" stop-color="#B3B3B5"/>
+<stop offset="1" stop-color="#979798"/>
+</radialGradient>
+<linearGradient id="paint2_linear_13_68" x1="170" y1="57" x2="170" y2="32" gradientUnits="userSpaceOnUse">
+<stop stop-color="#95AFBE"/>
+<stop offset="0.725245" stop-color="#D6E2F2"/>
+</linearGradient>
+</defs>
+</svg>

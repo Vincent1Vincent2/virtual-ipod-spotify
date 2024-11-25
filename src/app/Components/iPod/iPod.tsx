@@ -1,115 +1,99 @@
-"use client";
+/* "use client";
 
-import { SpotifyUserProfile } from "@/types/User";
-import { useEffect, useState } from "react";
+import { MenuItem } from "@/types/iPod/Screen";
+import React from "react";
+import { Menu } from "../Menu/Menu";
+import { ClickWheel } from "./ClickWheel/ClickWheel";
+import { Screen } from "./Screen/Screen";
+import Shell from "./Shell/Shell";
 
 interface iPodProps {
-  isDemo?: boolean;
   accessToken?: string;
+  onTokenExpired?: () => void;
 }
 
-export function IPod({ isDemo, accessToken }: iPodProps) {
-  const [userProfile, setUserProfile] = useState<SpotifyUserProfile | null>(
-    null
-  );
-  const [error, setError] = useState<string>("");
+const iPod: React.FC<iPodProps> = ({ accessToken, onTokenExpired }) => {
+  // State
+  const [selectedIndex, setSelectedIndex] = React.useState(0);
+  const [menuHistory, setMenuHistory] = React.useState<MenuItem[][]>([]);
 
-  useEffect(() => {
-    const fetchUserProfile = async () => {
-      if (!accessToken) return;
+  // Initialize menu items
+  const menuItems = Menu({}); // Get default menu items
+  const [currentMenuItems, setCurrentMenuItems] =
+    React.useState<MenuItem[]>(menuItems);
 
-      try {
-        const response = await fetch("https://api.spotify.com/v1/me", {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-        });
+  React.useEffect(() => {
+    // Set initial menu items when component mounts
+    setMenuHistory([[...menuItems]]);
+  }, []);
 
-        if (!response.ok) {
-          throw new Error(
-            `Failed to fetch user profile: ${response.statusText}`
-          );
-        }
-
-        const data = await response.json();
-        setUserProfile(data);
-      } catch (err) {
-        console.error("Error fetching user profile:", err);
-        setError(
-          err instanceof Error ? err.message : "Failed to load user profile"
-        );
+  // Navigation handlers
+  const handleWheelTurn = (direction: "clockwise" | "counterclockwise") => {
+    setSelectedIndex((prevIndex) => {
+      if (direction === "clockwise") {
+        return prevIndex < currentMenuItems.length - 1
+          ? prevIndex + 1
+          : prevIndex;
+      } else {
+        return prevIndex > 0 ? prevIndex - 1 : prevIndex;
       }
-    };
+    });
+  };
 
-    if (accessToken) {
-      fetchUserProfile();
+  const handleSelectPress = () => {
+    const selectedItem = currentMenuItems[selectedIndex];
+    if (selectedItem?.subMenu) {
+      setMenuHistory((prev) => [...prev, currentMenuItems]);
+      setCurrentMenuItems(selectedItem.subMenu);
+      setSelectedIndex(0);
+    } else if (selectedItem?.isLink && selectedItem?.href) {
+      console.log("Navigating to:", selectedItem.href);
+      // Handle navigation here
+    } else {
+      console.log("Selected item:", selectedItem);
     }
-  }, [accessToken]);
+  };
 
-  if (isDemo) {
-    return (
-      <div className="p-4 text-center">
-        <h1 className="text-2xl mb-4">Spotify iPod</h1>
-        <button
-          className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition-colors"
-          onClick={() => (window.location.href = "/auth")}
-        >
-          Connect with Spotify
-        </button>
-      </div>
-    );
-  }
+  const handleBackPress = () => {
+    if (menuHistory.length > 1) {
+      // Changed from > 0 to > 1 to keep initial menu
+      const previousMenu = menuHistory[menuHistory.length - 1];
+      setMenuHistory((prev) => prev.slice(0, -1));
+      setCurrentMenuItems(previousMenu);
+      setSelectedIndex(0);
+    }
+  };
+
+  const handleMenuPress = () => {
+    // Return to root menu
+    if (menuHistory.length > 1) {
+      const rootMenu = menuHistory[0];
+      setMenuHistory([rootMenu]);
+      setCurrentMenuItems(rootMenu);
+      setSelectedIndex(0);
+    }
+  };
 
   return (
-    <div className="p-6 max-w-md mx-auto bg-white rounded-xl shadow-lg">
-      <h1 className="text-2xl font-bold mb-4">Connected iPod</h1>
-
-      {error ? (
-        <div className="text-red-500 mb-4">{error}</div>
-      ) : userProfile ? (
-        <div className="space-y-4">
-          <div className="flex items-center space-x-4">
-            {userProfile.images?.[0] && (
-              <img
-                src={userProfile.images[0].url}
-                alt={userProfile.display_name || "Profile"}
-                className="w-16 h-16 rounded-full"
-              />
-            )}
-            <div>
-              <h2 className="text-xl font-semibold">
-                {userProfile.display_name || "Spotify User"}
-              </h2>
-              <p className="text-gray-500">{userProfile.email}</p>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4 text-sm">
-            <div className="bg-gray-50 p-2 rounded">
-              <p className="text-gray-500">Followers</p>
-              <p className="font-medium">{userProfile.followers.total}</p>
-            </div>
-            <div className="bg-gray-50 p-2 rounded">
-              <p className="text-gray-500">Country</p>
-              <p className="font-medium">{userProfile.country}</p>
-            </div>
-            <div className="bg-gray-50 p-2 rounded">
-              <p className="text-gray-500">Account</p>
-              <p className="font-medium capitalize">{userProfile.product}</p>
-            </div>
-          </div>
-        </div>
-      ) : (
-        <div className="animate-pulse space-y-4">
-          <div className="flex items-center space-x-4">
-            <div className="w-16 h-16 bg-gray-200 rounded-full"></div>
-            <div className="space-y-2">
-              <div className="h-4 bg-gray-200 rounded w-32"></div>
-              <div className="h-3 bg-gray-200 rounded w-48"></div>
-            </div>
-          </div>
-        </div>
-      )}
+    <div className="relative iPod-container">
+      <Shell theme="classic">
+        <Screen
+          menuItems={currentMenuItems}
+          selectedIndex={selectedIndex}
+          onMenuSelect={(item) => console.log("Selected:", item.label)}
+        />
+        <ClickWheel
+          onWheelTurn={handleWheelTurn}
+          onMenuPress={handleMenuPress}
+          onSelectPress={handleSelectPress}
+          onBackPress={handleBackPress}
+          onForwardPress={() => console.log("Forward pressed")}
+          onPlayPausePress={() => console.log("Play/Pause pressed")}
+        />
+      </Shell>
     </div>
   );
-}
+};
+
+export default iPod;
+ */
