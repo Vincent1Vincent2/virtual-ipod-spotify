@@ -17,7 +17,7 @@ datasource db {
 model Playlist {
   id            Int      @id @default(autoincrement())
   playlist_href String
-  playlist_id   String
+  playlist_id   String   @unique
   playlist_name String
   playlist_tracks  Int
   playlist_uri  String
