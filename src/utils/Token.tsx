@@ -6,7 +6,8 @@ import { useEffect, useState } from "react";
 const SPOTIFY_CONFIG = {
   clientId: process.env.NEXT_PUBLIC_CLIENT_ID || "",
   redirectUri: "http://localhost:3000/",
-  scope: "user-read-private user-read-email",
+  scope:
+    "user-read-private user-read-email user-read-playback-state user-modify-playback-state user-read-currently-playing app-remote-control streaming playlist-read-private playlist-read-collaborative playlist-modify-private playlist-modify-public user-follow-modify user-follow-read user-read-playback-position user-top-read user-read-recently-played user-library-modify user-library-read",
   authUrl: "https://accounts.spotify.com/authorize",
   tokenUrl: "https://accounts.spotify.com/api/token",
 };
@@ -21,21 +22,13 @@ function SpotifyAuth() {
         const urlParams = new URLSearchParams(window.location.search);
         const code = urlParams.get("code");
 
-        console.log("Current URL params:", {
-          code: code,
-          verifier: localStorage.getItem("code_verifier"),
-        });
-
         if (code) {
           setStatus("exchanging code for token");
-          console.log("Found code, attempting token exchange");
           await getToken(code);
           return;
         }
 
         setStatus("starting auth flow");
-        console.log("No code found, starting auth flow");
-
         const length = 128;
         const possible =
           "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
@@ -54,11 +47,6 @@ function SpotifyAuth() {
           .replace(/\//g, "_")
           .replace(/=/g, "");
 
-        console.log("Generated PKCE values:", {
-          verifierLength: codeVerifier.length,
-          challengeLength: challenge.length,
-        });
-
         window.localStorage.setItem("code_verifier", codeVerifier);
 
         const authUrl = new URL(SPOTIFY_CONFIG.authUrl);
@@ -72,7 +60,6 @@ function SpotifyAuth() {
         };
 
         authUrl.search = new URLSearchParams(params).toString();
-        console.log("Redirecting to:", authUrl.toString());
         window.location.href = authUrl.toString();
       } catch (err) {
         console.error("Auth flow error:", err);
@@ -86,13 +73,7 @@ function SpotifyAuth() {
 
   const getToken = async (code: string) => {
     try {
-      console.log("Starting token exchange...");
-
       const codeVerifier = localStorage.getItem("code_verifier");
-      console.log("Retrieved code verifier:", {
-        exists: !!codeVerifier,
-        length: codeVerifier?.length,
-      });
 
       if (!codeVerifier) {
         throw new Error("No code verifier found in localStorage");
@@ -106,11 +87,6 @@ function SpotifyAuth() {
         code_verifier: codeVerifier,
       });
 
-      console.log("Token request payload:", {
-        url: SPOTIFY_CONFIG.tokenUrl,
-        body: requestBody.toString(),
-      });
-
       const response = await fetch(SPOTIFY_CONFIG.tokenUrl, {
         method: "POST",
         headers: {
@@ -119,32 +95,21 @@ function SpotifyAuth() {
         body: requestBody,
       });
 
-      const responseText = await response.text();
-      console.log("Token response:", {
-        status: response.status,
-        statusText: response.statusText,
-        headers: Object.fromEntries(response.headers),
-        body: responseText,
-      });
+      const data = await response.json();
 
-      if (!response.ok) {
-        throw new Error(`Token exchange failed: ${responseText}`);
+      if (data.access_token) {
+        localStorage.setItem("access_token", data.access_token);
+        if (data.refresh_token) {
+          localStorage.setItem("refresh_token", data.refresh_token);
+        }
+
+        localStorage.removeItem("code_verifier");
+
+        window.history.replaceState({}, document.title, "/");
+        window.location.reload();
+      } else {
+        throw new Error("Token exchange failed");
       }
-
-      const data = JSON.parse(responseText);
-      console.log("Successfully parsed token response");
-
-      localStorage.setItem("access_token", data.access_token);
-      if (data.refresh_token) {
-        localStorage.setItem("refresh_token", data.refresh_token);
-      }
-
-      // Clean up
-      localStorage.removeItem("code_verifier");
-
-      // Remove code from URL and reload
-      window.history.replaceState({}, document.title, "/");
-      window.location.reload();
     } catch (err) {
       console.error("Token exchange error:", err);
       setError(err instanceof Error ? err.message : "Failed to get token");

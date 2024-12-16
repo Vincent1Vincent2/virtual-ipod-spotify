@@ -29,7 +29,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const searchParams = useSearchParams();
 
   useEffect(() => {
-    // Immediately check localStorage on initial load
     const initialToken = localStorage.getItem("access_token");
     if (initialToken) {
       setAuthState((prev) => ({
@@ -40,16 +39,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   }, []);
 
-  // Check for code and handle auth
   useEffect(() => {
     const handleAuth = async () => {
-      console.log("Starting auth");
       try {
         const code = searchParams.get("code");
         const error = searchParams.get("error");
         const existingToken = localStorage.getItem("access_token");
-
-        console.log({ code, error, existingToken });
 
         if (error) {
           setAuthState({
@@ -61,7 +56,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         }
 
         if (existingToken) {
-          console.log("Access token already exists");
           setAuthState({
             isLoading: false,
             error: null,
@@ -70,22 +64,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           return;
         }
 
-        // Have code but no token - need to process auth
         if (code) {
-          console.log("Starting code exchange");
           setAuthState({
             isLoading: true,
             error: null,
             accessToken: null,
           });
 
-          // Get PKCE verifier from storage
           const verifier = localStorage.getItem("code_verifier");
           if (!verifier) {
             throw new Error("No code verifier found");
           }
 
-          // Exchange code for token
           const response = await fetch(
             "https://accounts.spotify.com/api/token",
             {
@@ -108,36 +98,29 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           }
 
           const data = await response.json();
-
-          // Save tokens
           localStorage.setItem("access_token", data.access_token);
           if (data.refresh_token) {
             localStorage.setItem("refresh_token", data.refresh_token);
           }
 
-          // Clean up
           localStorage.removeItem("code_verifier");
 
-          // Update state
           setAuthState({
             isLoading: false,
             error: null,
             accessToken: data.access_token,
           });
 
-          // Clean URL
           router.replace("/");
           return;
         }
 
-        // No code, no token - initial state
         setAuthState({
           isLoading: false,
           error: null,
           accessToken: null,
         });
       } catch (err) {
-        console.error("Error during auth process", err);
         setAuthState({
           isLoading: false,
           error: "Something went wrong. Please try again.",
