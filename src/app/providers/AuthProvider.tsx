@@ -1,13 +1,12 @@
-// providers/AuthProvider.tsx
 "use client";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import React, { createContext, useEffect, useState } from "react";
 
-interface AuthState {
-  isLoading: boolean;
-  error: string | null;
-  accessToken: string | null;
-}
+import {
+  AuthContextType,
+  AuthProviderProps,
+  AuthState,
+} from "@/types/auth/auth";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { createContext, useContext, useEffect, useState } from "react";
 
 export const AuthContext = createContext<AuthContextType>({
   accessToken: null,
@@ -18,7 +17,7 @@ export const AuthContext = createContext<AuthContextType>({
   startAuth: () => {},
 });
 
-export function AuthProvider({ children }: { children: React.ReactNode }) {
+export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [authState, setAuthState] = useState<AuthState>({
     isLoading: true,
     error: null,
@@ -29,15 +28,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
+  useEffect(() => {
+    // Immediately check localStorage on initial load
+    const initialToken = localStorage.getItem("access_token");
+    if (initialToken) {
+      setAuthState((prev) => ({
+        ...prev,
+        isLoading: false,
+        accessToken: initialToken,
+      }));
+    }
+  }, []);
+
   // Check for code and handle auth
   useEffect(() => {
     const handleAuth = async () => {
+      console.log("Starting auth");
       try {
         const code = searchParams.get("code");
         const error = searchParams.get("error");
         const existingToken = localStorage.getItem("access_token");
 
-        // Handle auth errors
+        console.log({ code, error, existingToken });
+
         if (error) {
           setAuthState({
             isLoading: false,
@@ -47,8 +60,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           return;
         }
 
-        // Already have token
         if (existingToken) {
+          console.log("Access token already exists");
           setAuthState({
             isLoading: false,
             error: null,
@@ -59,6 +72,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         // Have code but no token - need to process auth
         if (code) {
+          console.log("Starting code exchange");
           setAuthState({
             isLoading: true,
             error: null,
@@ -123,6 +137,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           accessToken: null,
         });
       } catch (err) {
+        console.error("Error during auth process", err);
         setAuthState({
           isLoading: false,
           error: "Something went wrong. Please try again.",
@@ -159,14 +174,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
-}
+};
 
-// types/auth/auth.ts
-export interface AuthContextType {
-  accessToken: string | null;
-  isAuthenticated: boolean;
-  isLoading: boolean;
-  error: string | null;
-  logout: () => void;
-  startAuth: () => void;
-}
+export const useAuth = () => useContext(AuthContext);
