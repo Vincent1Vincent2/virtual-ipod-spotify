@@ -95,49 +95,4 @@ export class PlaybackController {
       }
     );
   }
-
-  async seek(positionMs: number, deviceId: string | null = null) {
-    const token = await this.auth.getValidToken();
-    await fetch(
-      `${this.baseUrl}/seek?position_ms=${positionMs}${
-        deviceId ? `&device_id=${deviceId}` : ""
-      }`,
-      {
-        method: "PUT",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
-  }
-
-  async setVolume(volumePercent: number, deviceId: string | null = null) {
-    const token = await this.auth.getValidToken();
-    await fetch(
-      `${this.baseUrl}/volume?volume_percent=${volumePercent}${
-        deviceId ? `&device_id=${deviceId}` : ""
-      }`,
-      {
-        method: "PUT",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
-  }
-
-  async queueTrack(uri: string, deviceId: string | null = null) {
-    const token = await this.auth.getValidToken();
-    await fetch(
-      `${this.baseUrl}/queue?uri=${uri}${
-        deviceId ? `&device_id=${deviceId}` : ""
-      }`,
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
-  }
 }
