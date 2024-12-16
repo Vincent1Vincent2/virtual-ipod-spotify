@@ -1,3 +1,4 @@
+"use server";
 import prisma from "@/services/prisma";
 
 export const savePlaylistData = async (
@@ -8,6 +9,17 @@ export const savePlaylistData = async (
   playlistUri: string
 ): Promise<void> => {
   try {
+    // Check if the playlist already exists
+    const existingPlaylist = await prisma.playlist.findUnique({
+      where: { playlist_id: playlistId },
+    });
+
+    if (existingPlaylist) {
+      console.log("Playlist already exists. Skipping save.");
+      return; // Exit if the playlist is already in the database
+    }
+
+    // If not found, create the playlist
     await prisma.playlist.create({
       data: {
         playlist_href: playlistHref,
@@ -17,6 +29,7 @@ export const savePlaylistData = async (
         playlist_uri: playlistUri,
       },
     });
+
     console.log("Playlist saved successfully");
   } catch (error) {
     console.error("Error saving playlist:", error);
