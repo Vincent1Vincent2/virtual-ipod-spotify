@@ -1,5 +1,7 @@
 "use client";
+import { getAllPlaylists } from "@/api/database/playlist";
 import { getUserPlaylists } from "@/api/user/playlists";
+import { dynamicScreen } from "@/helpers/dynamicScreen";
 import { MenuItem } from "@/types/iPod/Screen";
 
 export const createMenu = (accessToken: string | null): MenuItem[] => {
@@ -44,6 +46,19 @@ export const createMenu = (accessToken: string | null): MenuItem[] => {
           onClick: () => console.log("Songs clicked"),
         },
       ],
+    },
+    {
+      type: "action",
+      label: "Browse Global Playlists",
+      requiresAuth: true,
+      async onClick() {
+        if (!accessToken) {
+          console.error("Access token is missing.");
+          return;
+        }
+        const playlists = await getAllPlaylists();
+        dynamicScreen(playlists);
+      },
     },
     {
       type: "photos",

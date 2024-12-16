@@ -49,6 +49,7 @@ export const getAllPlaylists = async (): Promise<
 > => {
   try {
     const playlists = await prisma.playlist.findMany();
+
     return playlists;
   } catch (error) {
     console.error("Error fetching playlists:", error);
