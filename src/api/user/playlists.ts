@@ -1,3 +1,5 @@
+import { savePlaylistData } from "../database/playlist";
+
 export async function getUserPlaylists(
   accessToken: string | null,
   onPlaylistClick: (playlist: any) => void
@@ -26,9 +28,18 @@ export async function getUserPlaylists(
     }
 
     const data = await response.json();
-    console.log(data.items[0].name);
+    const playlist = data.items[0];
+    console.log(playlist.name);
     console.log(data.items[0].uri);
     console.log(data.items[0]);
+
+    await savePlaylistData(
+      playlist.href,
+      playlist.id,
+      playlist.name,
+      playlist.tracks.total,
+      playlist.uri
+    );
     // Clear existing content and append playlists
     const content = document.querySelector(".screen");
     if (!content) {
