@@ -26,7 +26,9 @@ export async function getUserPlaylists(
     }
 
     const data = await response.json();
-
+    console.log(data.items[0].name);
+    console.log(data.items[0].uri);
+    console.log(data.items[0]);
     // Clear existing content and append playlists
     const content = document.querySelector(".screen");
     if (!content) {

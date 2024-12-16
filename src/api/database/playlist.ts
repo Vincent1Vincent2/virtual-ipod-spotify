@@ -1,14 +1,20 @@
 import prisma from "@/services/prisma";
 
 export const savePlaylistData = async (
-  playlistUri: string,
-  playlistName: string
+  playlistHref: string,
+  playlistId: string,
+  playlistName: string,
+  playlistTracks: number,
+  playlistUri: string
 ): Promise<void> => {
   try {
     await prisma.playlist.create({
       data: {
-        playlist_uri: playlistUri,
+        playlist_href: playlistHref,
+        playlist_id: playlistId,
         playlist_name: playlistName,
+        playlist_tracks: playlistTracks,
+        playlist_uri: playlistUri,
       },
     });
     console.log("Playlist saved successfully");
@@ -19,7 +25,14 @@ export const savePlaylistData = async (
 };
 
 export const getAllPlaylists = async (): Promise<
-  { id: number; playlist_uri: string; playlist_name: string }[]
+  {
+    id: number;
+    playlist_href: string;
+    playlist_id: string;
+    playlist_name: string;
+    playlist_tracks: number;
+    playlist_uri: string;
+  }[]
 > => {
   try {
     const playlists = await prisma.playlist.findMany();
