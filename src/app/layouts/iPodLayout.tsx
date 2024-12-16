@@ -9,8 +9,8 @@ import { ClickWheel } from "../Components/iPod/ClickWheel/ClickWheel";
 import { AuthScreen } from "../Components/iPod/Screen/AuthScreen";
 import { Screen } from "../Components/iPod/Screen/Screen";
 import { createMenu } from "../Components/Menu/Menu";
-import { useAuth } from "../hooks/useAuth";
 import { useTheme } from "../hooks/useTheme";
+import { useAuth } from "../providers/AuthProvider";
 
 interface Dimensions {
   width: number;
@@ -18,16 +18,20 @@ interface Dimensions {
 }
 
 const IPodLayout: React.FC = () => {
-  const { isAuthenticated, logout } = useAuth();
+  const { isAuthenticated, logout, accessToken } = useAuth();
   const { currentTheme } = useTheme();
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [menuHistory, setMenuHistory] = useState<MenuItem[][]>([]);
-  const [currentMenuItems, setCurrentMenuItems] = useState<MenuItem[]>(
-    createMenu(isAuthenticated)
-  );
+  const [currentMenuItems, setCurrentMenuItems] = useState<MenuItem[]>([]);
+
   const svgRef = useRef<SVGSVGElement>(null);
   const [dimensions, setDimensions] = useState<Record<string, Dimensions>>({});
   const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const menu = createMenu(accessToken);
+    setCurrentMenuItems(menu);
+  }, [accessToken]);
 
   const handleWheelTurn = (direction: "clockwise" | "counterclockwise") => {
     if (!isAuthenticated) return;
@@ -79,10 +83,11 @@ const IPodLayout: React.FC = () => {
     }
   };
 
-  const handleMenuSelect = (item: MenuItem) => {
+  const handleMenuSelect = async (item: MenuItem) => {
     console.log("Selected:", item.label);
+
     if (isActionMenuItem(item)) {
-      item.onClick();
+      await item.onClick(); // Support async actions
     } else if (isNavigationMenuItem(item)) {
       setMenuHistory((prev) => [...prev, currentMenuItems]);
       setCurrentMenuItems(item.subMenu);
@@ -177,16 +182,18 @@ const IPodLayout: React.FC = () => {
                 className="screen-header Header"
                 style={getElementStyle("Header")}
               />
-              <div
-                className="screen-content Display"
-                style={getElementStyle("Display")}
-              >
+              <div className="screen-content Display">
                 {isAuthenticated ? (
-                  <Screen
-                    menuItems={currentMenuItems}
-                    selectedIndex={selectedIndex}
-                    onMenuSelect={handleMenuSelect}
-                  />
+                  <>
+                    <div className="menu-screen">
+                      <Screen
+                        menuItems={currentMenuItems}
+                        selectedIndex={selectedIndex}
+                        onMenuSelect={handleMenuSelect}
+                      />
+                    </div>
+                    <div id="screen" className="dynamic-content"></div>
+                  </>
                 ) : (
                   <AuthScreen />
                 )}
