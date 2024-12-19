@@ -1,5 +1,5 @@
 export interface ClickWheelProps {
-  onWheelTurn?: (direction: "clockwise" | "counterclockwise") => void;
+  onRingTurn: (direction: "clockwise" | "counterclockwise") => void;
   onMenuPress?: () => void;
   onSelectPress?: () => void;
   onBackPress?: () => void;
