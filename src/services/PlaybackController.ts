@@ -1,10 +1,28 @@
 export class PlaybackController {
   private auth: any;
   private baseUrl: string;
+  private initialized: boolean;
 
   constructor(auth: any) {
     this.auth = auth;
     this.baseUrl = "https://api.spotify.com/v1/me/player";
+    this.initialized = false;
+  }
+
+  async initialize() {
+    try {
+      await this.getAvailableDevices(); // Test the connection
+      this.initialized = true;
+    } catch (error) {
+      console.error("Failed to initialize PlaybackController:", error);
+      throw error;
+    }
+  }
+
+  private async checkInitialized() {
+    if (!this.initialized) {
+      await this.initialize();
+    }
   }
 
   async getAvailableDevices() {
