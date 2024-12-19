@@ -1,30 +1,35 @@
-import { SpotifyPlaybackState } from "@/types/player/player";
-
 export class PlaybackController {
   private auth: any;
   private baseUrl: string;
   private initialized: boolean;
+  private currentDeviceId: string | null;
+  private currentContext: any;
 
   constructor(auth: any) {
     this.auth = auth;
     this.baseUrl = "https://api.spotify.com/v1/me/player";
     this.initialized = false;
-  }
-
-  async initialize() {
-    try {
-      await this.getAvailableDevices();
-      this.initialized = true;
-      await this.restorePlaybackState();
-    } catch (error) {
-      console.error("Failed to initialize PlaybackController:", error);
-      throw error;
-    }
+    this.currentDeviceId = null;
+    this.currentContext = null;
   }
 
   private async checkInitialized() {
     if (!this.initialized) {
       await this.initialize();
+    }
+  }
+
+  async initialize() {
+    try {
+      const devices = await this.getAvailableDevices();
+      this.initialized = true;
+      if (devices.devices?.length > 0) {
+        this.currentDeviceId = devices.devices[0].id;
+      }
+      await this.restorePlaybackState();
+    } catch (error) {
+      console.error("Failed to initialize PlaybackController:", error);
+      this.initialized = true;
     }
   }
 
@@ -35,12 +40,50 @@ export class PlaybackController {
         Authorization: `Bearer ${token}`,
       },
     });
-    return await response.json();
+
+    if (!response.ok) {
+      return { devices: [] };
+    }
+
+    const text = await response.text();
+    try {
+      return text ? JSON.parse(text) : { devices: [] };
+    } catch {
+      return { devices: [] };
+    }
+  }
+
+  async getCurrentState() {
+    const token = await this.auth.getValidToken();
+    const response = await fetch(`${this.baseUrl}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      return {
+        is_playing: false,
+        item: null,
+        device: null,
+        progress_ms: 0,
+      };
+    }
+
+    const text = await response.text();
+    try {
+      const state = text ? JSON.parse(text) : null;
+      await this.savePlaybackState(state);
+      return state;
+    } catch {
+      return null;
+    }
   }
 
   async transferPlayback(deviceId: string, startPlaying = true) {
+    await this.checkInitialized();
     const token = await this.auth.getValidToken();
-    await fetch(`${this.baseUrl}`, {
+    const response = await fetch(`${this.baseUrl}`, {
       method: "PUT",
       headers: {
         Authorization: `Bearer ${token}`,
@@ -51,6 +94,10 @@ export class PlaybackController {
         play: startPlaying,
       }),
     });
+
+    if (response.ok) {
+      this.currentDeviceId = deviceId;
+    }
   }
 
   private async savePlaybackState(state: any) {
@@ -70,72 +117,52 @@ export class PlaybackController {
     const savedState = localStorage.getItem("playbackState");
     if (!savedState) return;
 
-    const state = JSON.parse(savedState);
-    const timePassed = Date.now() - state.timestamp;
-    const newProgress = state.progress + timePassed;
-
-    if (state.isPlaying) {
-      await this.play(null, {
-        uris: [state.trackUri],
-        position_ms: newProgress,
-      });
+    try {
+      const state = JSON.parse(savedState);
+      if (state.isPlaying && state.trackUri) {
+        const timePassed = Date.now() - state.timestamp;
+        const newProgress = state.progress + timePassed;
+        await this.play(this.currentDeviceId, {
+          uris: [state.trackUri],
+          position_ms: newProgress,
+        });
+      }
+    } catch (error) {
+      console.error("Failed to restore playback state:", error);
     }
-  }
-
-  async getCurrentState(): Promise<SpotifyPlaybackState> {
-    await this.checkInitialized();
-    const token = await this.auth.getValidToken();
-    const response = await fetch(`${this.baseUrl}`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
-    const state = await response.json();
-    await this.savePlaybackState(state);
-    return state;
   }
 
   async play(deviceId: string | null = null, context: any = null) {
     await this.checkInitialized();
     const token = await this.auth.getValidToken();
+    const targetDevice = deviceId || this.currentDeviceId;
+    this.currentContext = context;
 
-    const queryParams = deviceId ? `?device_id=${deviceId}` : "";
-    await fetch(`${this.baseUrl}/play${queryParams}`, {
-      method: "PUT",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-      body: context ? JSON.stringify(context) : undefined,
-    });
+    const response = await fetch(
+      `${this.baseUrl}/play${targetDevice ? `?device_id=${targetDevice}` : ""}`,
+      {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: context ? JSON.stringify(context) : undefined,
+      }
+    );
 
-    const newState = await this.getCurrentState();
-    await this.savePlaybackState(newState);
-  }
-
-  async pause(deviceId: string | null = null) {
-    await this.checkInitialized();
-    const token = await this.auth.getValidToken();
-
-    const queryParams = deviceId ? `?device_id=${deviceId}` : "";
-    await fetch(`${this.baseUrl}/pause${queryParams}`, {
-      method: "PUT",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
-    const newState = await this.getCurrentState();
-    await this.savePlaybackState(newState);
+    if (!response.ok && response.status !== 404) {
+      throw new Error(`Failed to play: ${response.status}`);
+    }
   }
 
   async togglePlayback(deviceId: string | null = null) {
     const currentState = await this.getCurrentState();
 
-    if (currentState.is_playing) {
+    if (currentState?.is_playing) {
       await this.pause(deviceId);
-    } else if (currentState.item) {
+    } else if (this.currentContext) {
+      await this.play(deviceId, this.currentContext);
+    } else if (currentState?.item) {
       await this.play(deviceId, {
         uris: [currentState.item.uri],
         position_ms: currentState.progress_ms,
@@ -143,10 +170,35 @@ export class PlaybackController {
     }
   }
 
-  async nextTrack(deviceId: string | null = null) {
+  async pause(deviceId: string | null = null) {
+    await this.checkInitialized();
     const token = await this.auth.getValidToken();
-    await fetch(
-      `${this.baseUrl}/next${deviceId ? `?device_id=${deviceId}` : ""}`,
+    const targetDevice = deviceId || this.currentDeviceId;
+
+    const response = await fetch(
+      `${this.baseUrl}/pause${
+        targetDevice ? `?device_id=${targetDevice}` : ""
+      }`,
+      {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    if (!response.ok && response.status !== 404) {
+      throw new Error(`Failed to pause: ${response.status}`);
+    }
+  }
+
+  async nextTrack(deviceId: string | null = null) {
+    await this.checkInitialized();
+    const token = await this.auth.getValidToken();
+    const targetDevice = deviceId || this.currentDeviceId;
+
+    const response = await fetch(
+      `${this.baseUrl}/next${targetDevice ? `?device_id=${targetDevice}` : ""}`,
       {
         method: "POST",
         headers: {
@@ -154,12 +206,21 @@ export class PlaybackController {
         },
       }
     );
+
+    if (!response.ok && response.status !== 404) {
+      throw new Error(`Failed to skip track: ${response.status}`);
+    }
   }
 
   async previousTrack(deviceId: string | null = null) {
+    await this.checkInitialized();
     const token = await this.auth.getValidToken();
-    await fetch(
-      `${this.baseUrl}/previous${deviceId ? `?device_id=${deviceId}` : ""}`,
+    const targetDevice = deviceId || this.currentDeviceId;
+
+    const response = await fetch(
+      `${this.baseUrl}/previous${
+        targetDevice ? `?device_id=${targetDevice}` : ""
+      }`,
       {
         method: "POST",
         headers: {
@@ -167,5 +228,9 @@ export class PlaybackController {
         },
       }
     );
+
+    if (!response.ok && response.status !== 404) {
+      throw new Error(`Failed to go to previous track: ${response.status}`);
+    }
   }
 }
