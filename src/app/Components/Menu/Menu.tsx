@@ -1,13 +1,43 @@
 "use client";
 import { getAllPlaylists } from "@/api/database/playlist";
 import { getUserPlaylists } from "@/api/user/playlists";
-import { dynamicScreen } from "@/helpers/dynamicScreen";
-import { MenuItem } from "@/types/iPod/Screen";
+import { ActionMenuItem, MenuItem, MenuState } from "@/types/iPod/Screen";
 
 export const createMenu = (accessToken: string | null): MenuItem[] => {
-  console.log("Creating menu with token:", accessToken);
+  const createGlobalPlaylistMenuItem = (): MenuItem => ({
+    type: "action",
+    label: "Browse Global Playlists",
+    requiresAuth: true,
+    async onClick(): Promise<MenuState> {
+      if (!accessToken) {
+        return {
+          items: [],
+          selectedIndex: 0,
+          title: "Error",
+          isDynamicContent: false,
+          currentPath: ["Error"],
+        };
+      }
 
-  // Define the menu items
+      const playlists = await getAllPlaylists();
+      return {
+        items: playlists.map((playlist) => ({
+          type: "action",
+          label: playlist.playlist_name,
+          onClick: async () => {
+            // Handle playlist selection
+            console.log("Selected playlist:", playlist);
+            return Promise.resolve();
+          },
+        })),
+        selectedIndex: 0,
+        title: "Global Playlists",
+        isDynamicContent: true,
+        currentPath: ["Browse Global Playlists"],
+      };
+    },
+  });
+
   const menuItems: MenuItem[] = [
     {
       type: "navigation",
@@ -16,82 +46,73 @@ export const createMenu = (accessToken: string | null): MenuItem[] => {
         {
           type: "action",
           label: "Playlists",
-          requiresAuth: true, // Requires authentication
-          onClick: () => {
-            if (!accessToken) {
-              console.error("Access token is missing.");
-              return;
-            }
-            getUserPlaylists(accessToken, (playlist) => {
-              const content = document.querySelector("#screen");
-              if (content) {
-                content.innerHTML = `<h2>${playlist.name}</h2>`;
-              }
-            });
+          requiresAuth: true,
+          async onClick(): Promise<MenuState> {
+            if (!accessToken) throw new Error("No access token");
+
+            const playlists = await getUserPlaylists(accessToken);
+            return {
+              items: playlists.map(
+                (playlist) =>
+                  ({
+                    type: "action",
+                    label: playlist.name,
+                    onClick: () => Promise.resolve(),
+                  } as ActionMenuItem)
+              ),
+              selectedIndex: 0,
+              title: "Playlists",
+              isDynamicContent: true,
+              currentPath: ["Music", "Playlists"],
+            };
           },
-        },
-        {
-          type: "music",
-          label: "Artists",
-          onClick: () => console.log("Artists clicked"),
-        },
-        {
-          type: "music",
-          label: "Albums",
-          onClick: () => console.log("Albums clicked"),
-        },
-        {
-          type: "music",
-          label: "Songs",
-          onClick: () => console.log("Songs clicked"),
         },
       ],
     },
+    createGlobalPlaylistMenuItem(),
     {
       type: "action",
-      label: "Browse Global Playlists",
-      requiresAuth: true,
-      async onClick() {
-        if (!accessToken) {
-          console.error("Access token is missing.");
-          return;
-        }
-        const playlists = await getAllPlaylists();
-        dynamicScreen(playlists);
+      label: "Photos",
+      onClick: (): void => {
+        console.log("Photos clicked");
       },
     },
     {
-      type: "photos",
-      label: "Photos",
-      onClick: () => console.log("Photos clicked"),
-    },
-    {
-      type: "videos",
+      type: "action",
       label: "Videos",
-      onClick: () => console.log("Videos clicked"),
+      onClick: (): void => {
+        console.log("Videos clicked");
+      },
     },
     {
-      type: "extras",
+      type: "action",
       label: "Extras",
-      onClick: () => console.log("Extras clicked"),
+      onClick: (): void => {
+        console.log("Extras clicked");
+      },
     },
     {
-      type: "settings",
+      type: "action",
       label: "Settings",
-      onClick: () => console.log("Settings clicked"),
+      onClick: (): void => {
+        console.log("Settings clicked");
+      },
     },
     {
-      type: "shuffle",
+      type: "action",
       label: "Shuffle Songs",
-      onClick: () => console.log("Shuffle clicked"),
+      onClick: (): void => {
+        console.log("Shuffle clicked");
+      },
     },
     {
-      type: "sleep",
+      type: "action",
       label: "Sleep",
-      onClick: () => console.log("Sleep clicked"),
+      onClick: (): void => {
+        console.log("Sleep clicked");
+      },
     },
   ];
 
-  // Filter out items that require authentication but are not authenticated
   return menuItems.filter((item) => !(item.requiresAuth && !accessToken));
 };
