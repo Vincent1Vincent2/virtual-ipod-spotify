@@ -1,7 +1,8 @@
 "use client";
 import { getAllPlaylists } from "@/api/database/playlist";
 import { getUserPlaylists } from "@/api/user/playlists";
-import { ActionMenuItem, MenuItem, MenuState } from "@/types/iPod/Screen";
+import { getPlaylistTracks } from "@/api/user/tracks";
+import { MenuItem, MenuState } from "@/types/iPod/Screen";
 
 export const createMenu = (accessToken: string | null): MenuItem[] => {
   const createGlobalPlaylistMenuItem = (): MenuItem => ({
@@ -25,8 +26,12 @@ export const createMenu = (accessToken: string | null): MenuItem[] => {
           type: "action",
           label: playlist.playlist_name,
           onClick: async () => {
+            const tracks = await getPlaylistTracks(
+              accessToken,
+              playlist.playlist_id
+            );
             // Handle playlist selection
-            console.log("Selected playlist:", playlist);
+            console.log("Selected playlist tracks:", tracks);
             return Promise.resolve();
           },
         })),
@@ -52,14 +57,19 @@ export const createMenu = (accessToken: string | null): MenuItem[] => {
 
             const playlists = await getUserPlaylists(accessToken);
             return {
-              items: playlists.map(
-                (playlist) =>
-                  ({
-                    type: "action",
-                    label: playlist.name,
-                    onClick: () => Promise.resolve(),
-                  } as ActionMenuItem)
-              ),
+              items: playlists.map((playlist) => ({
+                type: "action",
+                label: playlist.name,
+                onClick: async () => {
+                  const tracks = await getPlaylistTracks(
+                    accessToken,
+                    playlist.id
+                  );
+                  // Handle playlist selection
+                  console.log("Selected playlist tracks:", tracks);
+                  return Promise.resolve();
+                },
+              })),
               selectedIndex: 0,
               title: "Playlists",
               isDynamicContent: true,
