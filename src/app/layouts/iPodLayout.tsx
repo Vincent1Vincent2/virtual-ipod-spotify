@@ -7,6 +7,7 @@ import { Screen } from "../Components/iPod/Screen/Screen";
 import { createMenu } from "../Components/Menu/Menu";
 import { useTheme } from "../hooks/useTheme";
 import { useAuth } from "../providers/AuthProvider";
+import { usePlayer } from "../providers/PlayerProvider";
 
 interface Dimensions {
   width: number;
@@ -15,6 +16,7 @@ interface Dimensions {
 
 const IPodLayout: React.FC = () => {
   const { isAuthenticated, accessToken } = useAuth();
+  const { controller } = usePlayer();
   const { currentTheme } = useTheme();
   const svgRef = useRef<SVGSVGElement>(null);
 
@@ -31,14 +33,14 @@ const IPodLayout: React.FC = () => {
 
   useEffect(() => {
     if (accessToken) {
-      const initialMenu = createMenu(accessToken);
+      const initialMenu = createMenu(accessToken, controller);
       setCurrentView({
         items: initialMenu,
         selectedIndex: 0,
         title: "Main Menu",
       });
     }
-  }, [accessToken]);
+  }, [accessToken, controller]);
 
   const handleWheelTurn = (direction: "clockwise" | "counterclockwise") => {
     if (!isAuthenticated) return;

@@ -2,17 +2,42 @@
 import { getAllPlaylists } from "@/api/database/playlist";
 import { getUserPlaylists } from "@/api/user/playlists";
 import { getPlaylistTracks } from "@/api/user/tracks";
+import { PlaybackController } from "@/services/PlaybackController";
 import { MenuItem, MenuState } from "@/types/iPod/Screen";
+import { SpotifyPlaylist } from "@/types/spotify/playlist";
 import { SpotifyTrack } from "@/types/spotify/track";
 
-export const createMenu = (accessToken: string | null): MenuItem[] => {
+export const createMenu = (
+  accessToken: string | null,
+  controller: PlaybackController | null
+): MenuItem[] => {
   const createTrackMenuItem = (track: SpotifyTrack): MenuItem => ({
     type: "action",
     label: `${track.name} - ${formatDuration(track.duration_ms)}`,
     onClick: async () => {
-      // Handle track selection
-      console.log("Playing track:", track);
-      return Promise.resolve();
+      if (!controller) return;
+      try {
+        await controller.play(null, {
+          uris: [track.uri],
+        });
+      } catch (error) {
+        console.error("Error playing track:", error);
+      }
+    },
+  });
+
+  const createPlaylistMenuItem = (playlist: SpotifyPlaylist): MenuItem => ({
+    type: "action",
+    label: playlist.name,
+    onClick: async () => {
+      if (!accessToken) return;
+      const tracks = await getPlaylistTracks(accessToken, playlist.id);
+      return {
+        items: tracks.map((item: any) => createTrackMenuItem(item.track)),
+        selectedIndex: 0,
+        title: playlist.name,
+        currentPath: ["Music", "Playlists", playlist.name],
+      };
     },
   });
 
