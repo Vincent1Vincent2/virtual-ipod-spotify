@@ -16,7 +16,7 @@ interface Dimensions {
 
 const IPodLayout: React.FC = () => {
   const { isAuthenticated, accessToken } = useAuth();
-  const { controller } = usePlayer();
+  const { controller, playPause, skipTrack, backTrack } = usePlayer();
   const { currentTheme } = useTheme();
   const svgRef = useRef<SVGSVGElement>(null);
 
@@ -115,7 +115,7 @@ const IPodLayout: React.FC = () => {
 
   const handleMenuPress = () => {
     if (!isAuthenticated) return;
-    if (menuStack.length > 0) handleBackPress();
+    handleBackPress();
   };
 
   const handleKeyboardNavigation = useCallback(
@@ -192,6 +192,21 @@ const IPodLayout: React.FC = () => {
     };
   };
 
+  const handleForwardPress = () => {
+    if (!isAuthenticated) return;
+    skipTrack();
+  };
+
+  const handlePlayPausePress = () => {
+    if (!isAuthenticated) return;
+    playPause();
+  };
+
+  const handleBackwardPress = () => {
+    if (!isAuthenticated) return;
+    backTrack();
+  };
+
   return (
     <div className="ipod-container">
       {isLoading && (
@@ -255,9 +270,9 @@ const IPodLayout: React.FC = () => {
                 onRingTurn={handleWheelTurn}
                 onMenuPress={handleMenuPress}
                 onSelectPress={handleSelectPress}
-                onBackPress={handleBackPress}
-                onForwardPress={() => console.log("Forward pressed")}
-                onPlayPausePress={() => console.log("Play/Pause pressed")}
+                onBackPress={handleBackwardPress}
+                onForwardPress={handleForwardPress}
+                onPlayPausePress={handlePlayPausePress}
                 canGoBack={menuStack.length > 0}
               />
             </div>
