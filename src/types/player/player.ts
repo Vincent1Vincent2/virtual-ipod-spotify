@@ -13,3 +13,11 @@ export interface PlayerContextType {
 export interface PlayerProviderProps {
   children: React.ReactNode;
 }
+
+export interface SpotifyDeviceResponse {
+  device_id: string;
+}
+
+export interface SpotifyPlaybackState {
+  paused: boolean;
+}

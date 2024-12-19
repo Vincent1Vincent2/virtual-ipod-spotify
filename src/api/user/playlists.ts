@@ -1,66 +1,38 @@
+import { SpotifyPlaylist } from "@/types/spotify/playlist";
 import { savePlaylistData } from "../database/playlist";
 
 export async function getUserPlaylists(
-  accessToken: string | null,
-  onPlaylistClick: (playlist: any) => void
-) {
-  if (!accessToken) {
-    console.error("No access token provided!");
-    return;
-  }
+  accessToken: string
+): Promise<SpotifyPlaylist[]> {
+  if (!accessToken) throw new Error("No access token provided!");
 
-  try {
-    const response = await fetch(
-      "https://api.spotify.com/v1/me/playlists?" +
-        new URLSearchParams({
-          limit: "10",
-          offset: "0",
-        }),
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      }
-    );
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+  const response = await fetch(
+    "https://api.spotify.com/v1/me/playlists?" +
+      new URLSearchParams({
+        limit: "10",
+        offset: "0",
+      }),
+    {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
     }
+  );
 
-    const data = await response.json();
-    const playlist = data.items[0];
-    console.log(playlist.name);
-    console.log(data.items[0].uri);
-    console.log(data.items[0]);
+  if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
 
-    await savePlaylistData(
-      playlist.href,
-      playlist.id,
-      playlist.name,
-      playlist.tracks.total,
-      playlist.uri
-    );
-    // Clear existing content and append playlists
-    const content = document.querySelector(".screen");
-    if (!content) {
-      console.error("Content element not found!");
-      return;
-    }
+  const data = await response.json();
+  await Promise.all(
+    data.items.map(async (playlist: SpotifyPlaylist) => {
+      await savePlaylistData(
+        playlist.href,
+        playlist.id,
+        playlist.name,
+        playlist.tracks.total,
+        playlist.uri
+      );
+    })
+  );
 
-    content.innerHTML = ""; // Clear existing content
-
-    data.items.forEach((playlist: any) => {
-      const playlistItem = document.createElement("div");
-      playlistItem.className = "playlist-item";
-      playlistItem.textContent = playlist.name;
-
-      playlistItem.addEventListener("click", () => {
-        onPlaylistClick(playlist); // Trigger callback with playlist data
-      });
-
-      content.appendChild(playlistItem);
-    });
-  } catch (error) {
-    console.error("Failed to fetch playlists:", error);
-  }
+  return data.items;
 }
