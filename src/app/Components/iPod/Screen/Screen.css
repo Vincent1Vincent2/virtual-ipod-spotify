@@ -1,0 +1,39 @@
+.menu-item {
+  transition: background-color 0.2s ease;
+}
+
+.menu-item--selected {
+  background-color: blue;
+  color: white;
+}
+
+.menu-item--hovered {
+  background-color: lightblue;
+}
+
+/* .menu-list {
+  padding: 8px;
+}
+
+.menu-item {
+  padding: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border-radius: 4px;
+  margin: 2px 0;
+}
+
+.menu-item--selected {
+  background-color: #007aff;
+  color: white;
+}
+
+.menu-item--hovered:not(.menu-item--selected) {
+  background-color: rgba(0, 122, 255, 0.1);
+}
+
+.menu-item:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(0, 122, 255, 0.5);
+}
+ */
