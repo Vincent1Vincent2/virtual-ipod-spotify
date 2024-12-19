@@ -1,14 +1,18 @@
 import { ClickWheelProps } from "@/types/iPod/ClickWheel";
 import React from "react";
 import { ClickWheelControls } from "./ClickWheelControls";
+import TouchRing from "./TouchRing";
 
-export const ClickWheel: React.FC<ClickWheelProps> = ({
-  onWheelTurn,
+export const ClickWheel: React.FC<
+  ClickWheelProps & { canGoBack?: boolean }
+> = ({
+  onRingTurn,
   onMenuPress,
   onSelectPress,
   onBackPress,
   onForwardPress,
   onPlayPausePress,
+  canGoBack = false,
 }) => {
   const [activeButton, setActiveButton] = React.useState<string | null>(null);
 
@@ -16,7 +20,8 @@ export const ClickWheel: React.FC<ClickWheelProps> = ({
     setActiveButton(buttonId);
     switch (buttonId) {
       case "menu":
-        onMenuPress?.();
+        // If we can go back, treat menu as back button
+        canGoBack ? onBackPress?.() : onMenuPress?.();
         break;
       case "select":
         onSelectPress?.();
@@ -35,9 +40,11 @@ export const ClickWheel: React.FC<ClickWheelProps> = ({
 
   return (
     <div className="absolute" style={{ width: "200px", height: "200px" }}>
+      <TouchRing onRingTurn={onRingTurn} />
       <ClickWheelControls
         onButtonPress={handleButtonPress}
         onButtonRelease={() => setActiveButton(null)}
+        canGoBack={canGoBack}
       />
     </div>
   );
