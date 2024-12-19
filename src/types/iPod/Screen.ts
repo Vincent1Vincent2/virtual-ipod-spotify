@@ -1,48 +1,11 @@
-export type BaseMenuItem = {
+export interface BaseMenuItem {
   label: string;
-  requiresAuth?: boolean; // Add requiresAuth to handle authentication-based menu items
-  isLink?: boolean;
-  href?: string;
-};
+  requiresAuth?: boolean;
+}
 
-export type MusicMenuItem = BaseMenuItem & {
-  type: "music";
-  onClick: () => void;
-  subMenu?: MenuItem[];
-};
-
-export type PhotosMenuItem = BaseMenuItem & {
-  type: "photos";
-  onClick: () => void;
-  subMenu?: MenuItem[];
-};
-
-export type VideosMenuItem = BaseMenuItem & {
-  type: "videos";
-  onClick: () => void;
-  subMenu?: MenuItem[];
-};
-
-export type ExtrasMenuItem = BaseMenuItem & {
-  type: "extras";
-  onClick: () => void;
-  subMenu?: MenuItem[];
-};
-
-export type SettingsMenuItem = BaseMenuItem & {
-  type: "settings";
-  onClick: () => void;
-  subMenu?: MenuItem[];
-};
-
-export type ShuffleMenuItem = BaseMenuItem & {
-  type: "shuffle";
-  onClick: () => void;
-};
-
-export type SleepMenuItem = BaseMenuItem & {
-  type: "sleep";
-  onClick: () => void;
+export type ActionMenuItem = BaseMenuItem & {
+  type: "action";
+  onClick: () => Promise<MenuState | void> | void;
 };
 
 export type NavigationMenuItem = BaseMenuItem & {
@@ -50,24 +13,19 @@ export type NavigationMenuItem = BaseMenuItem & {
   subMenu: MenuItem[];
 };
 
-export type ActionMenuItem = BaseMenuItem & {
-  type: "action";
-  onClick: () => void;
-};
+export type MenuItem = ActionMenuItem | NavigationMenuItem;
 
-export type MenuItem =
-  | ActionMenuItem
-  | NavigationMenuItem
-  | MusicMenuItem
-  | PhotosMenuItem
-  | VideosMenuItem
-  | ExtrasMenuItem
-  | SettingsMenuItem
-  | ShuffleMenuItem
-  | SleepMenuItem;
-
+export interface MenuState {
+  items: MenuItem[];
+  selectedIndex: number;
+  title?: string;
+  isDynamicContent?: boolean;
+  currentPath?: string[];
+}
 export interface ScreenProps {
   menuItems: MenuItem[];
   selectedIndex: number;
+  hoveredIndex?: number | null;
   onMenuSelect: (item: MenuItem) => void;
+  onMenuItemHover?: (index: number) => void;
 }
