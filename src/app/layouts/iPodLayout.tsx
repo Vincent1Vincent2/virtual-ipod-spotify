@@ -47,7 +47,10 @@ const IPodLayout: React.FC = () => {
       ...prev,
       selectedIndex:
         direction === "clockwise"
-          ? Math.min(prev.selectedIndex + 1, prev.items.length - 1)
+          ? Math.min(
+              prev.selectedIndex + 1,
+              (prev.tracks?.length || prev.items.length) - 1
+            )
           : Math.max(prev.selectedIndex - 1, 0),
     }));
   };
@@ -234,6 +237,8 @@ const IPodLayout: React.FC = () => {
                       hoveredIndex={hoveredIndex}
                       onMenuSelect={handleSelectPress}
                       onMenuItemHover={handleMenuItemHover}
+                      isDynamicContent={currentView.isDynamicContent}
+                      tracks={currentView.tracks}
                     />
                     <div id="screen" className="dynamic-content" />
                   </>

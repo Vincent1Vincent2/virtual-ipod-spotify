@@ -30,14 +30,19 @@ export const createMenu = (accessToken: string | null): MenuItem[] => {
               accessToken,
               playlist.playlist_id
             );
-            // Handle playlist selection
-            console.log("Selected playlist tracks:", tracks);
-            return Promise.resolve();
+            return {
+              items: [],
+              selectedIndex: 0,
+              title: playlist.playlist_name,
+              isDynamicContent: true,
+              currentPath: ["Browse Global Playlists", playlist.playlist_name],
+              tracks: tracks.map((item: any) => item.track),
+            };
           },
         })),
         selectedIndex: 0,
         title: "Global Playlists",
-        isDynamicContent: true,
+        isDynamicContent: false,
         currentPath: ["Browse Global Playlists"],
       };
     },
@@ -65,14 +70,19 @@ export const createMenu = (accessToken: string | null): MenuItem[] => {
                     accessToken,
                     playlist.id
                   );
-                  // Handle playlist selection
-                  console.log("Selected playlist tracks:", tracks);
-                  return Promise.resolve();
+                  return {
+                    items: [],
+                    selectedIndex: 0,
+                    title: playlist.name,
+                    isDynamicContent: true,
+                    currentPath: ["Music", "Playlists", playlist.name],
+                    tracks: tracks.map((item: any) => item.track),
+                  };
                 },
               })),
               selectedIndex: 0,
               title: "Playlists",
-              isDynamicContent: true,
+              isDynamicContent: false,
               currentPath: ["Music", "Playlists"],
             };
           },

@@ -1,3 +1,5 @@
+import { SpotifyTrack } from "../spotify/track";
+
 export interface BaseMenuItem {
   label: string;
   requiresAuth?: boolean;
@@ -21,11 +23,5 @@ export interface MenuState {
   title?: string;
   isDynamicContent?: boolean;
   currentPath?: string[];
-}
-export interface ScreenProps {
-  menuItems: MenuItem[];
-  selectedIndex: number;
-  hoveredIndex?: number | null;
-  onMenuSelect: (item: MenuItem) => void;
-  onMenuItemHover?: (index: number) => void;
+  tracks?: SpotifyTrack[];
 }
