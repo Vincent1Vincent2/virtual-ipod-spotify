@@ -1,10 +1,6 @@
 "use client";
-import {
-  ActionMenuItem,
-  MenuItem,
-  NavigationMenuItem,
-} from "@/types/iPod/Screen";
-import { useEffect, useRef, useState } from "react";
+import { MenuState } from "@/types/iPod/Screen";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { ClickWheel } from "../Components/iPod/ClickWheel/ClickWheel";
 import { AuthScreen } from "../Components/iPod/Screen/AuthScreen";
 import { Screen } from "../Components/iPod/Screen/Screen";
@@ -18,100 +14,138 @@ interface Dimensions {
 }
 
 const IPodLayout: React.FC = () => {
-  const { isAuthenticated, logout, accessToken } = useAuth();
+  const { isAuthenticated, accessToken } = useAuth();
   const { currentTheme } = useTheme();
-  const [selectedIndex, setSelectedIndex] = useState(0);
-  const [menuHistory, setMenuHistory] = useState<MenuItem[][]>([]);
-  const [currentMenuItems, setCurrentMenuItems] = useState<MenuItem[]>([]);
-
   const svgRef = useRef<SVGSVGElement>(null);
-  const [dimensions, setDimensions] = useState<Record<string, Dimensions>>({});
+
+  const [currentView, setCurrentView] = useState<MenuState>({
+    items: [],
+    selectedIndex: 0,
+    title: "Main Menu",
+  });
+  const [menuStack, setMenuStack] = useState<MenuState[]>([]);
+  const [isKeyboardNavigating, setIsKeyboardNavigating] = useState(false);
+  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [dimensions, setDimensions] = useState<Record<string, Dimensions>>({});
 
   useEffect(() => {
-    const menu = createMenu(accessToken);
-    setCurrentMenuItems(menu);
+    if (accessToken) {
+      const initialMenu = createMenu(accessToken);
+      setCurrentView({
+        items: initialMenu,
+        selectedIndex: 0,
+        title: "Main Menu",
+      });
+    }
   }, [accessToken]);
 
   const handleWheelTurn = (direction: "clockwise" | "counterclockwise") => {
     if (!isAuthenticated) return;
 
-    setSelectedIndex((prevIndex) => {
-      if (direction === "clockwise") {
-        return prevIndex < currentMenuItems.length - 1
-          ? prevIndex + 1
-          : prevIndex;
-      }
-      return prevIndex > 0 ? prevIndex - 1 : prevIndex;
-    });
+    setCurrentView((prev) => ({
+      ...prev,
+      selectedIndex:
+        direction === "clockwise"
+          ? Math.min(prev.selectedIndex + 1, prev.items.length - 1)
+          : Math.max(prev.selectedIndex - 1, 0),
+    }));
   };
 
-  const handleSelectPress = () => {
+  const handleSelectPress = async () => {
     if (!isAuthenticated) return;
 
-    const selectedItem = currentMenuItems[selectedIndex];
+    const selectedItem = currentView.items[currentView.selectedIndex];
     if (!selectedItem) return;
 
-    if (isNavigationMenuItem(selectedItem)) {
-      setMenuHistory((prev) => [...prev, currentMenuItems]);
-      setCurrentMenuItems(selectedItem.subMenu);
-      setSelectedIndex(0);
-    } else if (isActionMenuItem(selectedItem)) {
-      selectedItem.onClick();
+    if (selectedItem.type === "action" && selectedItem.onClick) {
+      try {
+        const result = await selectedItem.onClick();
+        if (result) {
+          setMenuStack((prev) => [...prev, currentView]);
+          setCurrentView({
+            ...result,
+            selectedIndex: 0,
+          });
+        }
+      } catch (error) {
+        console.error("Action failed:", error);
+      }
+    } else if (selectedItem.type === "navigation") {
+      setMenuStack((prev) => [...prev, currentView]);
+      setCurrentView({
+        items: selectedItem.subMenu,
+        selectedIndex: 0,
+        title: selectedItem.label,
+        currentPath: [...(currentView.currentPath || []), selectedItem.label],
+      });
     }
   };
 
-  const handleBackPress = () => {
-    if (!isAuthenticated) return;
-
-    if (menuHistory.length > 1) {
-      const previousMenu = menuHistory[menuHistory.length - 1];
-      setMenuHistory((prev) => prev.slice(0, -1));
-      setCurrentMenuItems(previousMenu);
-      setSelectedIndex(0);
+  const handleMenuItemHover = (index: number) => {
+    if (!isKeyboardNavigating) {
+      setCurrentView((prev) => ({
+        ...prev,
+        selectedIndex: index,
+      }));
+      setHoveredIndex(index);
     }
+  };
+
+  useEffect(() => {
+    const handleKeyUp = () => {
+      setTimeout(() => setIsKeyboardNavigating(false), 100);
+    };
+
+    window.addEventListener("keyup", handleKeyUp);
+    return () => window.removeEventListener("keyup", handleKeyUp);
+  }, []);
+
+  const handleBackPress = () => {
+    if (!isAuthenticated || menuStack.length === 0) return;
+    const previousView = menuStack[menuStack.length - 1];
+    setMenuStack((prev) => prev.slice(0, -1));
+    setCurrentView(previousView);
   };
 
   const handleMenuPress = () => {
     if (!isAuthenticated) return;
-
-    if (menuHistory.length > 1) {
-      const rootMenu = menuHistory[0];
-      setMenuHistory([rootMenu]);
-      setCurrentMenuItems(rootMenu);
-      setSelectedIndex(0);
-    }
+    if (menuStack.length > 0) handleBackPress();
   };
 
-  const handleMenuSelect = async (item: MenuItem) => {
-    console.log("Selected:", item.label);
+  const handleKeyboardNavigation = useCallback(
+    (event: KeyboardEvent) => {
+      if (!isAuthenticated) return;
+      setIsKeyboardNavigating(true);
 
-    if (isActionMenuItem(item)) {
-      await item.onClick(); // Support async actions
-    } else if (isNavigationMenuItem(item)) {
-      setMenuHistory((prev) => [...prev, currentMenuItems]);
-      setCurrentMenuItems(item.subMenu);
-      setSelectedIndex(0);
-    }
-  };
+      switch (event.key) {
+        case "ArrowDown":
+        case "ArrowUp":
+          setCurrentView((prev) => ({
+            ...prev,
+            selectedIndex:
+              event.key === "ArrowDown"
+                ? Math.min(prev.selectedIndex + 1, prev.items.length - 1)
+                : Math.max(prev.selectedIndex - 1, 0),
+          }));
+          setHoveredIndex(null);
+          break;
+        case "Enter":
+          handleSelectPress();
+          break;
+        case "Backspace":
+          handleBackPress(); // Changed from handleMenuPress to handleBackPress
+          break;
+      }
+    },
+    [isAuthenticated, handleSelectPress, handleBackPress] // Added necessary dependencies
+  );
 
-  // Type guards
-  const isActionMenuItem = (item: MenuItem): item is ActionMenuItem => {
-    return item.type === "action";
-  };
-
-  const isNavigationMenuItem = (item: MenuItem): item is NavigationMenuItem => {
-    return item.type === "navigation";
-  };
-
-  const getElementStyle = (elementClass: string): React.CSSProperties => {
-    const svgId = elementClass.split(" ").pop();
-    if (!svgId || !dimensions[svgId]) return {};
-    return {
-      width: `${dimensions[svgId].width}px`,
-      height: `${dimensions[svgId].height}px`,
-    };
-  };
+  useEffect(() => {
+    window.addEventListener("keydown", handleKeyboardNavigation);
+    return () =>
+      window.removeEventListener("keydown", handleKeyboardNavigation);
+  }, [handleKeyboardNavigation]);
 
   useEffect(() => {
     const loadSvg = async () => {
@@ -120,10 +154,8 @@ const IPodLayout: React.FC = () => {
         const svgText = await response.text();
         if (svgRef.current) {
           svgRef.current.innerHTML = svgText;
-
           const dimensionsMap: Record<string, Dimensions> = {};
           const elements = svgRef.current.querySelectorAll("g[id]");
-
           elements.forEach((element) => {
             if (element instanceof SVGGraphicsElement) {
               const bbox = element.getBBox();
@@ -145,6 +177,15 @@ const IPodLayout: React.FC = () => {
     setIsLoading(true);
     loadSvg();
   }, [currentTheme.svgPath]);
+
+  const getElementStyle = (elementClass: string): React.CSSProperties => {
+    const svgId = elementClass.split(" ").pop();
+    if (!svgId || !dimensions[svgId]) return {};
+    return {
+      width: `${dimensions[svgId].width}px`,
+      height: `${dimensions[svgId].height}px`,
+    };
+  };
 
   return (
     <div className="ipod-container">
@@ -183,19 +224,19 @@ const IPodLayout: React.FC = () => {
                 style={getElementStyle("Header")}
               />
               <div className="screen-content Display">
-                {isAuthenticated ? (
-                  <>
-                    <div className="menu-screen">
-                      <Screen
-                        menuItems={currentMenuItems}
-                        selectedIndex={selectedIndex}
-                        onMenuSelect={handleMenuSelect}
-                      />
-                    </div>
-                    <div id="screen" className="dynamic-content"></div>
-                  </>
-                ) : (
+                {!isAuthenticated ? (
                   <AuthScreen />
+                ) : (
+                  <>
+                    <Screen
+                      menuItems={currentView.items}
+                      selectedIndex={currentView.selectedIndex}
+                      hoveredIndex={hoveredIndex}
+                      onMenuSelect={handleSelectPress}
+                      onMenuItemHover={handleMenuItemHover}
+                    />
+                    <div id="screen" className="dynamic-content" />
+                  </>
                 )}
               </div>
             </div>
@@ -204,12 +245,13 @@ const IPodLayout: React.FC = () => {
               <div className="touch-ring" />
               <div className="select-button" />
               <ClickWheel
-                onWheelTurn={handleWheelTurn}
+                onRingTurn={handleWheelTurn}
                 onMenuPress={handleMenuPress}
                 onSelectPress={handleSelectPress}
                 onBackPress={handleBackPress}
                 onForwardPress={() => console.log("Forward pressed")}
                 onPlayPausePress={() => console.log("Play/Pause pressed")}
+                canGoBack={menuStack.length > 0}
               />
             </div>
           </div>
