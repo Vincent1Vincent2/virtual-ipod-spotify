@@ -2,7 +2,13 @@
 
 import { PlaybackController } from "@/services/PlaybackController";
 import { PlayerContextType, PlayerProviderProps } from "@/types/player/player";
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { useAuth } from "./AuthProvider";
 
 export const PlayerContext = createContext<PlayerContextType>({
@@ -21,106 +27,101 @@ export const PlayerProvider: React.FC<PlayerProviderProps> = ({ children }) => {
   const [controller, setController] = useState<PlaybackController | null>(null);
   const [isPlaying, setIsPlaying] = useState<boolean | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const initializingRef = useRef(false);
 
   useEffect(() => {
-    if (accessToken) {
-      const playbackController = new PlaybackController({
-        getValidToken: () => Promise.resolve(accessToken),
-      });
-      setController(playbackController);
-    }
-  }, [accessToken]);
+    if (!accessToken || initializingRef.current) return;
 
-  useEffect(() => {
-    if (!accessToken) return;
+    const initializeSystem = async () => {
+      initializingRef.current = true;
+      try {
+        const player = await new Promise<Spotify.Player>((resolve) => {
+          window.onSpotifyWebPlaybackSDKReady = () => {
+            const player = new window.Spotify.Player({
+              name: "Virtual iPod Spotify Player",
+              getOAuthToken: (cb: (token: string) => void) => cb(accessToken),
+            });
+            resolve(player);
+          };
 
-    const loadSpotifySDK = () => {
-      if (!window.Spotify && !document.getElementById("spotify-sdk-script")) {
-        const script = document.createElement("script");
-        script.src = "https://sdk.scdn.co/spotify-player.js";
-        script.id = "spotify-sdk-script"; // Prevent duplicate script injections
-        script.async = true;
-        document.body.appendChild(script);
+          if (!document.getElementById("spotify-sdk-script")) {
+            const script = document.createElement("script");
+            script.src = "https://sdk.scdn.co/spotify-player.js";
+            script.id = "spotify-sdk-script";
+            document.body.appendChild(script);
+          }
+        });
+
+        const playbackController = new PlaybackController({
+          getValidToken: () => Promise.resolve(accessToken),
+        });
+        await playbackController.initialize();
+
+        player.addListener("ready", async ({ device_id }) => {
+          console.log("Ready with Device ID", device_id);
+          setIsPlaying(false);
+
+          try {
+            const devicesResponse =
+              await playbackController.getAvailableDevices();
+            console.log("Available devices:", devicesResponse);
+
+            if (devicesResponse?.devices?.length) {
+              const browserDevice = devicesResponse.devices.find(
+                (device: any) => device.name === "Virtual iPod Spotify Player"
+              );
+
+              if (browserDevice) {
+                console.log("Found browser device:", browserDevice);
+                console.log("Transferring playback...");
+                await playbackController.transferPlayback(browserDevice.id);
+                console.log("Playback transferred successfully");
+              } else {
+                console.log("Browser device not found in available devices");
+              }
+            } else {
+              console.log("No devices available");
+            }
+          } catch (error) {
+            console.error("Error setting up device:", error);
+            setError("Failed to set up device");
+          }
+        });
+
+        player.addListener("not_ready", ({ device_id }) => {
+          console.log("Device ID is offline", device_id);
+          setIsPlaying(false);
+          setError("Device not ready");
+        });
+
+        player.addListener("player_state_changed", (state) => {
+          if (state) {
+            setIsPlaying(!state.paused);
+          }
+        });
+
+        player.connect();
+        setSpotifyPlayer(player);
+        setController(playbackController);
+      } catch (error) {
+        console.error("Failed to initialize system:", error);
+        setError("Failed to initialize system");
+      } finally {
+        initializingRef.current = false;
       }
     };
 
-    loadSpotifySDK();
-
-    window.onSpotifyWebPlaybackSDKReady = async () => {
-      setIsPlaying(true); // Set connecting state
-
-      const player = new window.Spotify.Player({
-        name: "Virtual iPod Spotify Player",
-        getOAuthToken: (cb: (token: string) => void) => {
-          cb(accessToken); // Provide the OAuth token
-        },
-      });
-
-      player.addListener(
-        "ready",
-        async ({ device_id }: { device_id: string }) => {
-          console.log("Ready with Device ID", device_id);
-          setIsPlaying(false); // Set connecting state to false once ready
-
-          // Fetch available devices and log the response to inspect its structure
-          const devicesResponse = await controller?.getAvailableDevices();
-          console.log("Devices response:", devicesResponse); // Log the full response
-
-          if (devicesResponse && Array.isArray(devicesResponse.devices)) {
-            // Access devices array properly
-            const devices = devicesResponse.devices;
-            const browserDevice = devices.find(
-              (device: any) => device.name === "Virtual iPod Spotify Player"
-            );
-            const lastDeviceId = localStorage.getItem("lastDeviceId");
-
-            if (browserDevice && browserDevice.id !== lastDeviceId) {
-              console.log("Transferring playback to browser...");
-              await controller?.transferPlayback(browserDevice.id);
-              localStorage.setItem("lastDeviceId", browserDevice.id); // Store the device_id in localStorage
-            }
-          } else {
-            console.error(
-              "The devices response does not contain a valid devices array",
-              devicesResponse
-            );
-            setError("Failed to fetch devices.");
-          }
-        }
-      );
-
-      player.addListener(
-        "not_ready",
-        ({ device_id }: { device_id: string }) => {
-          console.log("Device ID is offline", device_id);
-          setIsPlaying(false); // Handle disconnection
-          setError("Device not ready.");
-        }
-      );
-
-      player.addListener(
-        "player_state_changed",
-        (state: Spotify.PlaybackState | null) => {
-          if (state) {
-            setIsPlaying(!state.paused); // Update play/pause state
-          }
-        }
-      );
-
-      player.connect();
-      setSpotifyPlayer(player);
-    };
+    initializeSystem();
 
     return () => {
       if (spotifyPlayer) {
         spotifyPlayer.disconnect();
       }
     };
-  }, [accessToken, controller]);
+  }, [accessToken]);
 
   const playPause = async () => {
     if (!spotifyPlayer) return;
-
     try {
       const state = await spotifyPlayer.getCurrentState();
       if (state?.paused) {
@@ -128,7 +129,7 @@ export const PlayerProvider: React.FC<PlayerProviderProps> = ({ children }) => {
       } else {
         await spotifyPlayer.pause();
       }
-      setIsPlaying(!state?.paused); // Update play/pause state
+      setIsPlaying(!state?.paused);
     } catch (error) {
       console.error("Error in playPause:", error);
     }
@@ -156,13 +157,7 @@ export const PlayerProvider: React.FC<PlayerProviderProps> = ({ children }) => {
 
   return (
     <PlayerContext.Provider
-      value={{
-        isPlaying,
-        playPause,
-        backTrack,
-        skipTrack,
-        error,
-      }}
+      value={{ isPlaying, playPause, backTrack, skipTrack, error }}
     >
       {children}
     </PlayerContext.Provider>
