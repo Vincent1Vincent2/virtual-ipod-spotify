@@ -86,7 +86,7 @@ const TouchRing: React.FC<TouchRingProps> = ({ onRingTurn }) => {
         height: "100%",
         borderRadius: "50%",
         cursor: "pointer",
-        zIndex: 1,
+        zIndex: -1,
       }}
     />
   );

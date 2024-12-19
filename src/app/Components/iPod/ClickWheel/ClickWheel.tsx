@@ -20,8 +20,7 @@ export const ClickWheel: React.FC<
     setActiveButton(buttonId);
     switch (buttonId) {
       case "menu":
-        // If we can go back, treat menu as back button
-        canGoBack ? onBackPress?.() : onMenuPress?.();
+        onMenuPress?.();
         break;
       case "select":
         onSelectPress?.();
