@@ -19,5 +19,8 @@ export interface SpotifyDeviceResponse {
 }
 
 export interface SpotifyPlaybackState {
+  progress_ms: any;
+  item: any;
+  is_playing: any;
   paused: boolean;
 }
