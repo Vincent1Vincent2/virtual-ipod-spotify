@@ -3,8 +3,19 @@ import { getAllPlaylists } from "@/api/database/playlist";
 import { getUserPlaylists } from "@/api/user/playlists";
 import { getPlaylistTracks } from "@/api/user/tracks";
 import { MenuItem, MenuState } from "@/types/iPod/Screen";
+import { SpotifyTrack } from "@/types/spotify/track";
 
 export const createMenu = (accessToken: string | null): MenuItem[] => {
+  const createTrackMenuItem = (track: SpotifyTrack): MenuItem => ({
+    type: "action",
+    label: `${track.name} - ${formatDuration(track.duration_ms)}`,
+    onClick: async () => {
+      // Handle track selection
+      console.log("Playing track:", track);
+      return Promise.resolve();
+    },
+  });
+
   const createGlobalPlaylistMenuItem = (): MenuItem => ({
     type: "action",
     label: "Browse Global Playlists",
@@ -15,7 +26,6 @@ export const createMenu = (accessToken: string | null): MenuItem[] => {
           items: [],
           selectedIndex: 0,
           title: "Error",
-          isDynamicContent: false,
           currentPath: ["Error"],
         };
       }
@@ -31,22 +41,26 @@ export const createMenu = (accessToken: string | null): MenuItem[] => {
               playlist.playlist_id
             );
             return {
-              items: [],
+              items: tracks.map((item: any) => createTrackMenuItem(item.track)),
               selectedIndex: 0,
               title: playlist.playlist_name,
-              isDynamicContent: true,
               currentPath: ["Browse Global Playlists", playlist.playlist_name],
-              tracks: tracks.map((item: any) => item.track),
             };
           },
         })),
         selectedIndex: 0,
         title: "Global Playlists",
-        isDynamicContent: false,
         currentPath: ["Browse Global Playlists"],
       };
     },
   });
+
+  // Helper function for duration formatting
+  const formatDuration = (ms: number): string => {
+    const minutes = Math.floor(ms / 60000);
+    const seconds = Math.floor((ms % 60000) / 1000);
+    return `${minutes}:${seconds.toString().padStart(2, "0")}`;
+  };
 
   const menuItems: MenuItem[] = [
     {
@@ -71,18 +85,17 @@ export const createMenu = (accessToken: string | null): MenuItem[] => {
                     playlist.id
                   );
                   return {
-                    items: [],
+                    items: tracks.map((item: any) =>
+                      createTrackMenuItem(item.track)
+                    ),
                     selectedIndex: 0,
                     title: playlist.name,
-                    isDynamicContent: true,
                     currentPath: ["Music", "Playlists", playlist.name],
-                    tracks: tracks.map((item: any) => item.track),
                   };
                 },
               })),
               selectedIndex: 0,
               title: "Playlists",
-              isDynamicContent: false,
               currentPath: ["Music", "Playlists"],
             };
           },
