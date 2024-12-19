@@ -11,14 +11,20 @@ export const createMenu = (
   accessToken: string | null,
   controller: PlaybackController | null
 ): MenuItem[] => {
-  const createTrackMenuItem = (track: SpotifyTrack): MenuItem => ({
+  const createTrackMenuItem = (
+    track: SpotifyTrack,
+    playlistContext: { uri: string; id: string; name: string },
+    position: number
+  ): MenuItem => ({
     type: "action",
     label: `${track.name} - ${formatDuration(track.duration_ms)}`,
     onClick: async () => {
       if (!controller) return;
       try {
         await controller.play(null, {
-          uris: [track.uri],
+          context_uri: playlistContext.uri,
+          offset: { position },
+          position_ms: 0,
         });
       } catch (error) {
         console.error("Error playing track:", error);
@@ -33,7 +39,17 @@ export const createMenu = (
       if (!accessToken) return;
       const tracks = await getPlaylistTracks(accessToken, playlist.id);
       return {
-        items: tracks.map((item: any) => createTrackMenuItem(item.track)),
+        items: tracks.map((item: any, index: number) =>
+          createTrackMenuItem(
+            item.track,
+            {
+              uri: `spotify:playlist:${playlist.id}`,
+              id: playlist.id,
+              name: playlist.name,
+            },
+            index
+          )
+        ),
         selectedIndex: 0,
         title: playlist.name,
         currentPath: ["Music", "Playlists", playlist.name],
@@ -46,14 +62,7 @@ export const createMenu = (
     label: "Browse Global Playlists",
     requiresAuth: true,
     async onClick(): Promise<MenuState> {
-      if (!accessToken) {
-        return {
-          items: [],
-          selectedIndex: 0,
-          title: "Error",
-          currentPath: ["Error"],
-        };
-      }
+      if (!accessToken) throw new Error("No access token");
 
       const playlists = await getAllPlaylists();
       return {
@@ -66,7 +75,17 @@ export const createMenu = (
               playlist.playlist_id
             );
             return {
-              items: tracks.map((item: any) => createTrackMenuItem(item.track)),
+              items: tracks.map((item: any, index: number) =>
+                createTrackMenuItem(
+                  item.track,
+                  {
+                    uri: `spotify:playlist:${playlist.playlist_id}`,
+                    id: playlist.playlist_id,
+                    name: playlist.playlist_name,
+                  },
+                  index
+                )
+              ),
               selectedIndex: 0,
               title: playlist.playlist_name,
               currentPath: ["Browse Global Playlists", playlist.playlist_name],
@@ -80,7 +99,6 @@ export const createMenu = (
     },
   });
 
-  // Helper function for duration formatting
   const formatDuration = (ms: number): string => {
     const minutes = Math.floor(ms / 60000);
     const seconds = Math.floor((ms % 60000) / 1000);
@@ -110,8 +128,16 @@ export const createMenu = (
                     playlist.id
                   );
                   return {
-                    items: tracks.map((item: any) =>
-                      createTrackMenuItem(item.track)
+                    items: tracks.map((item: any, index: number) =>
+                      createTrackMenuItem(
+                        item.track,
+                        {
+                          uri: `spotify:playlist:${playlist.id}`,
+                          id: playlist.id,
+                          name: playlist.name,
+                        },
+                        index
+                      )
                     ),
                     selectedIndex: 0,
                     title: playlist.name,
