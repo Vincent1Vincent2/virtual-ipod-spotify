@@ -17,6 +17,7 @@ export const PlayerContext = createContext<PlayerContextType>({
   backTrack: () => {},
   skipTrack: () => {},
   error: null,
+  controller: null,
 });
 
 export const PlayerProvider: React.FC<PlayerProviderProps> = ({ children }) => {
@@ -59,7 +60,8 @@ export const PlayerProvider: React.FC<PlayerProviderProps> = ({ children }) => {
 
         player.addListener("ready", async ({ device_id }) => {
           console.log("Ready with Device ID", device_id);
-          setIsPlaying(false);
+          const currentState = await playbackController.getCurrentState();
+          setIsPlaying(currentState.is_playing);
 
           try {
             const devicesResponse =
@@ -94,9 +96,11 @@ export const PlayerProvider: React.FC<PlayerProviderProps> = ({ children }) => {
           setError("Device not ready");
         });
 
-        player.addListener("player_state_changed", (state) => {
+        player.addListener("player_state_changed", async (state) => {
           if (state) {
             setIsPlaying(!state.paused);
+            const currentState = await playbackController.getCurrentState();
+            setIsPlaying(currentState.is_playing);
           }
         });
 
@@ -121,24 +125,21 @@ export const PlayerProvider: React.FC<PlayerProviderProps> = ({ children }) => {
   }, [accessToken]);
 
   const playPause = async () => {
-    if (!spotifyPlayer) return;
+    if (!controller) return;
     try {
-      const state = await spotifyPlayer.getCurrentState();
-      if (state?.paused) {
-        await spotifyPlayer.resume();
-      } else {
-        await spotifyPlayer.pause();
-      }
-      setIsPlaying(!state?.paused);
+      await controller.togglePlayback();
+      const state = await controller.getCurrentState();
+      setIsPlaying(state.is_playing);
     } catch (error) {
       console.error("Error in playPause:", error);
+      setError("Playback control failed");
     }
   };
 
   const backTrack = async () => {
-    if (spotifyPlayer) {
+    if (controller) {
       try {
-        await spotifyPlayer.previousTrack();
+        await controller.previousTrack();
       } catch (error) {
         console.error("Error in backTrack:", error);
       }
@@ -146,9 +147,9 @@ export const PlayerProvider: React.FC<PlayerProviderProps> = ({ children }) => {
   };
 
   const skipTrack = async () => {
-    if (spotifyPlayer) {
+    if (controller) {
       try {
-        await spotifyPlayer.nextTrack();
+        await controller.nextTrack();
       } catch (error) {
         console.error("Error in skipTrack:", error);
       }
@@ -157,7 +158,14 @@ export const PlayerProvider: React.FC<PlayerProviderProps> = ({ children }) => {
 
   return (
     <PlayerContext.Provider
-      value={{ isPlaying, playPause, backTrack, skipTrack, error }}
+      value={{
+        isPlaying,
+        playPause,
+        backTrack,
+        skipTrack,
+        error,
+        controller,
+      }}
     >
       {children}
     </PlayerContext.Provider>
