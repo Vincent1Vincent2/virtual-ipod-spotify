@@ -61,7 +61,7 @@ export const PlayerProvider: React.FC<PlayerProviderProps> = ({ children }) => {
         player.addListener("ready", async ({ device_id }) => {
           console.log("Ready with Device ID", device_id);
           const currentState = await playbackController.getCurrentState();
-          setIsPlaying(currentState.is_playing);
+          setIsPlaying(currentState?.is_playing ?? false);
 
           try {
             const devicesResponse =
@@ -78,11 +78,7 @@ export const PlayerProvider: React.FC<PlayerProviderProps> = ({ children }) => {
                 console.log("Transferring playback...");
                 await playbackController.transferPlayback(browserDevice.id);
                 console.log("Playback transferred successfully");
-              } else {
-                console.log("Browser device not found in available devices");
               }
-            } else {
-              console.log("No devices available");
             }
           } catch (error) {
             console.error("Error setting up device:", error);
