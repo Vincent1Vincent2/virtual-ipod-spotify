@@ -72,27 +72,26 @@ npm run dev
 #### Planering och Research
 
 - [ ] Målgruppsanalys
-- [ ] Projekthantering (Trello/Kanban)
+- [x] Projekthantering
 
 #### Design och Prototyping
 
-- [ ] Figma wireframes/prototyp (UX/UI)
+- [x] Figma wireframes/prototyp (UX/UI)
 - [ ] Responsiv design (2+ skärmstorlekar)
 - [ ] WCAG 2.1 compliance
 
 #### Applikationsutveckling
 
-- [ ] Modernt JavaScript-ramverk
-- [ ] PostgreSQL + Prisma integration
-- [ ] State management
-- [ ] Dynamiska, reaktiva komponenter
+- [x] Modernt JavaScript-ramverk
+- [x] PostgreSQL + Prisma integration
+- [x] State management
+- [x] Dynamiska, reaktiva komponenter
 - [ ] WCAG 2.1 & semantisk HTML
 - [ ] Responsiv design (mobil + desktop)
 
 #### Versionshantering
 
-- [ ] Git workflow
-- [ ] GitHub repo
+- [x] GitHub repo
 
 #### Slutrapport (2-3 sidor)
 
