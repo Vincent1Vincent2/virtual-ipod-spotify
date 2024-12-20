@@ -1,36 +1,188 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🎓 Examensarbete
 
-## Getting Started
+## 📝 Projektbeskrivning
 
-First, run the development server:
+## 🚀 Kom igång
+
+### Förutsättningar
+
+- Node.js (v18 eller senare)
+- npm
+- Git
+
+### Installation
+
+1. Klona repot
+
+```bash
+git clone <your-repo-url>
+cd <project-name>
+```
+
+2. Installera dependencies
+
+```bash
+npm install
+```
+
+3. Konfigurera miljövariabler
+
+```bash
+cp .env.example .env
+```
+
+### 🎵 Spotify Setup
+
+1. Skapa en app via [Spotify Developer Dashboard](https://developer.spotify.com/dashboard/create)
+2. Lägg till `http://localhost:3000/` som callback URL i app-inställningarna
+3. Kopiera Client ID till din `.env` fil
+
+### 🗄️ Databas Setup
+
+Projektet använder PostgreSQL via Neon med Prisma som ORM.
+
+1. Skapa ett konto på [Neon](https://neon.tech)
+2. Skapa en ny databas
+3. Kopiera connection string till din `.env` fil
+4. Kör Prisma migrationer:
+
+```bash
+npx prisma generate
+npx prisma db push
+```
+
+### 🔧 Miljövariabler
+
+```env
+DATABASE_URL="postgresql://..."
+SPOTIFY_CLIENT_ID="your-client-id"
+SPOTIFY_CLIENT_SECRET="your-client-secret"
+```
+
+### 🏃‍♂️ Kör projektet
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## ✅ Projektkrav Checklista
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### 🎯 Godkänt (G) Krav
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+#### Planering och Research
 
-## Learn More
+- [ ] Målgruppsanalys
+- [ ] Projekthantering (Trello/Kanban)
 
-To learn more about Next.js, take a look at the following resources:
+#### Design och Prototyping
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- [ ] Figma wireframes/prototyp (UX/UI)
+- [ ] Responsiv design (2+ skärmstorlekar)
+- [ ] WCAG 2.1 compliance
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+#### Applikationsutveckling
 
-## Deploy on Vercel
+- [ ] Modernt JavaScript-ramverk
+- [ ] PostgreSQL + Prisma integration
+- [ ] State management
+- [ ] Dynamiska, reaktiva komponenter
+- [ ] WCAG 2.1 & semantisk HTML
+- [ ] Responsiv design (mobil + desktop)
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+#### Versionshantering
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- [ ] Git workflow
+- [ ] GitHub repo
+
+#### Slutrapport (2-3 sidor)
+
+- [ ] Engelsk abstract
+- [ ] Tech stack & motivering
+- [ ] Process dokumentation
+
+#### Deploy
+
+- [ ] Live hosting
+
+### 🌟 Väl Godkänd (VG) Krav
+
+#### Design och Prototyping
+
+- [ ] Interaktiv prototyp
+- [ ] Production-ready design
+- [ ] Komplett WCAG 2.1 (A & AA)
+
+#### Applikationsutveckling
+
+- [ ] Advanced state management
+- [ ] Optimerad kodbas
+- [ ] Komponentåteranvändning
+- [ ] CRUD-operationer
+- [ ] Säker autentisering
+- [ ] Full responsivitet
+
+#### Versionshantering
+
+- [ ] Feature branches
+- [ ] Pull request workflow
+- [ ] Clean commit history
+- [ ] Detaljerad README
+
+#### Deploy
+
+- [ ] CI/CD pipeline
+- [ ] Automatisk deployment
+
+#### Slutrapport (3-6 sidor)
+
+- [ ] Djupgående processanalys
+- [ ] Tekniska val & motiveringar
+- [ ] UX/UI dokumentation
+
+## 📂 Projektstruktur
+
+```
+├── prisma/                    # Databasmodeller och migrationer
+│   ├── migrations/
+│   └── schema.prisma
+├── public/                    # Statiska filer
+│   └── themes/
+│       └── classic/
+├── src/
+│   ├── api/                   # API endpoints
+│   │   ├── database/
+│   │   └── user/
+│   ├── app/
+│   │   ├── Components/
+│   │   │   ├── iPod/         # iPod-relaterade komponenter
+│   │   │   │   ├── ClickWheel/
+│   │   │   │   ├── Screen/
+│   │   │   │   └── Shell/
+│   │   │   ├── Menu/
+│   │   │   └── Themes/
+│   │   ├── hooks/            # Custom hooks
+│   │   ├── layouts/          # Layout komponenter
+│   │   └── providers/        # Context providers
+│   ├── helpers/              # Hjälpfunktioner
+│   ├── services/             # Servicelager
+│   ├── types/                # TypeScript typdefinitioner
+│   └── utils/                # Utilities
+├── .env                      # Miljövariabler
+├── next.config.ts           # Next.js konfiguration
+├── package.json
+└── tsconfig.json            # TypeScript konfiguration
+```
+
+## 🛠️ Tech Stack
+
+- Frontend: [Next]
+- Backend: [Next]
+- Database: PostgreSQL (Neon)
+- ORM: Prisma
+- Hosting: [Vercel]
+
+## 📚 Användbara länkar
+
+- [Prisma Docs](https://www.prisma.io/docs/)
+- [Neon Documentation](https://neon.tech/docs/)
+- [WCAG 2.1 Guidelines](https://www.w3.org/WAI/WCAG21/quickref/)
