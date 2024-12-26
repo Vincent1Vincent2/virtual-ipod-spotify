@@ -7,10 +7,22 @@ import { MenuItem, MenuState } from "@/types/iPod/Screen";
 import { SpotifyPlaylist } from "@/types/spotify/playlist";
 import { SpotifyTrack } from "@/types/spotify/track";
 
+const checkTokenExpiry = (): boolean => {
+  const expiryTime = localStorage.getItem("token_expiry");
+  return !expiryTime || Date.now() > parseInt(expiryTime);
+};
+
 export const createMenu = (
   accessToken: string | null,
   controller: PlaybackController | null
 ): MenuItem[] => {
+  const safeApiCall = async (apiCall: () => Promise<any>) => {
+    if (checkTokenExpiry()) {
+      return null;
+    }
+    return apiCall();
+  };
+
   const createTrackMenuItem = (
     track: SpotifyTrack,
     playlistContext: { uri: string; id: string; name: string },
@@ -19,7 +31,9 @@ export const createMenu = (
     type: "action",
     label: `${track.name} - ${formatDuration(track.duration_ms)}`,
     onClick: async () => {
-      if (!controller) return;
+      if (!controller || checkTokenExpiry()) {
+        return;
+      }
       try {
         await controller.play(null, {
           context_uri: playlistContext.uri,
@@ -29,73 +43,6 @@ export const createMenu = (
       } catch (error) {
         console.error("Error playing track:", error);
       }
-    },
-  });
-
-  const createPlaylistMenuItem = (playlist: SpotifyPlaylist): MenuItem => ({
-    type: "action",
-    label: playlist.name,
-    onClick: async () => {
-      if (!accessToken) return;
-      const tracks = await getPlaylistTracks(accessToken, playlist.id);
-      return {
-        items: tracks.map((item: any, index: number) =>
-          createTrackMenuItem(
-            item.track,
-            {
-              uri: `spotify:playlist:${playlist.id}`,
-              id: playlist.id,
-              name: playlist.name,
-            },
-            index
-          )
-        ),
-        selectedIndex: 0,
-        title: playlist.name,
-        currentPath: ["Music", "Playlists", playlist.name],
-      };
-    },
-  });
-
-  const createGlobalPlaylistMenuItem = (): MenuItem => ({
-    type: "action",
-    label: "Browse Global Playlists",
-    requiresAuth: true,
-    async onClick(): Promise<MenuState> {
-      if (!accessToken) throw new Error("No access token");
-
-      const playlists = await getAllPlaylists();
-      return {
-        items: playlists.map((playlist) => ({
-          type: "action",
-          label: playlist.playlist_name,
-          onClick: async () => {
-            const tracks = await getPlaylistTracks(
-              accessToken,
-              playlist.playlist_id
-            );
-            return {
-              items: tracks.map((item: any, index: number) =>
-                createTrackMenuItem(
-                  item.track,
-                  {
-                    uri: `spotify:playlist:${playlist.playlist_id}`,
-                    id: playlist.playlist_id,
-                    name: playlist.playlist_name,
-                  },
-                  index
-                )
-              ),
-              selectedIndex: 0,
-              title: playlist.playlist_name,
-              currentPath: ["Browse Global Playlists", playlist.playlist_name],
-            };
-          },
-        })),
-        selectedIndex: 0,
-        title: "Global Playlists",
-        currentPath: ["Browse Global Playlists"],
-      };
     },
   });
 
@@ -117,27 +64,35 @@ export const createMenu = (
           async onClick(): Promise<MenuState> {
             if (!accessToken) throw new Error("No access token");
 
-            const playlists = await getUserPlaylists(accessToken);
+            const playlists = await safeApiCall(() =>
+              getUserPlaylists(accessToken)
+            );
+            if (!playlists)
+              throw new Error("No playlist found, try signing out and in");
+
             return {
-              items: playlists.map((playlist) => ({
+              items: playlists.map((playlist: SpotifyPlaylist) => ({
                 type: "action",
                 label: playlist.name,
                 onClick: async () => {
-                  const tracks = await getPlaylistTracks(
-                    accessToken,
-                    playlist.id
+                  if (!accessToken) return null;
+                  const tracks = await safeApiCall(() =>
+                    getPlaylistTracks(accessToken, playlist.id)
                   );
+                  if (!tracks) return null;
+
                   return {
-                    items: tracks.map((item: any, index: number) =>
-                      createTrackMenuItem(
-                        item.track,
-                        {
-                          uri: `spotify:playlist:${playlist.id}`,
-                          id: playlist.id,
-                          name: playlist.name,
-                        },
-                        index
-                      )
+                    items: tracks.map(
+                      (track: { track: SpotifyTrack }, index: number) =>
+                        createTrackMenuItem(
+                          track.track,
+                          {
+                            uri: `spotify:playlist:${playlist.id}`,
+                            id: playlist.id,
+                            name: playlist.name,
+                          },
+                          index
+                        )
                     ),
                     selectedIndex: 0,
                     title: playlist.name,
@@ -153,48 +108,87 @@ export const createMenu = (
         },
       ],
     },
-    createGlobalPlaylistMenuItem(),
+    {
+      type: "action",
+      label: "Browse Global Playlists",
+      requiresAuth: true,
+      async onClick(): Promise<MenuState> {
+        if (!accessToken) throw new Error("No access token");
+
+        const playlists = await safeApiCall(() => getAllPlaylists());
+        if (!playlists)
+          throw new Error("No playlist found, try signing out and in");
+
+        return {
+          items: playlists.map(
+            (playlist: { playlist_name: string; playlist_id: string }) => ({
+              type: "action",
+              label: playlist.playlist_name,
+              onClick: async () => {
+                if (!accessToken) return null;
+                const tracks = await safeApiCall(() =>
+                  getPlaylistTracks(accessToken, playlist.playlist_id)
+                );
+                if (!tracks) return null;
+
+                return {
+                  items: tracks.map(
+                    (track: { track: SpotifyTrack }, index: number) =>
+                      createTrackMenuItem(
+                        track.track,
+                        {
+                          uri: `spotify:playlist:${playlist.playlist_id}`,
+                          id: playlist.playlist_id,
+                          name: playlist.playlist_name,
+                        },
+                        index
+                      )
+                  ),
+                  selectedIndex: 0,
+                  title: playlist.playlist_name,
+                  currentPath: [
+                    "Browse Global Playlists",
+                    playlist.playlist_name,
+                  ],
+                };
+              },
+            })
+          ),
+          selectedIndex: 0,
+          title: "Global Playlists",
+          currentPath: ["Browse Global Playlists"],
+        };
+      },
+    },
     {
       type: "action",
       label: "Photos",
-      onClick: (): void => {
-        console.log("Photos clicked");
-      },
+      onClick: () => {},
     },
     {
       type: "action",
       label: "Videos",
-      onClick: (): void => {
-        console.log("Videos clicked");
-      },
+      onClick: () => {},
     },
     {
       type: "action",
       label: "Extras",
-      onClick: (): void => {
-        console.log("Extras clicked");
-      },
+      onClick: () => {},
     },
     {
       type: "action",
       label: "Settings",
-      onClick: (): void => {
-        console.log("Settings clicked");
-      },
+      onClick: () => {},
     },
     {
       type: "action",
       label: "Shuffle Songs",
-      onClick: (): void => {
-        console.log("Shuffle clicked");
-      },
+      onClick: () => {},
     },
     {
       type: "action",
       label: "Sleep",
-      onClick: (): void => {
-        console.log("Sleep clicked");
-      },
+      onClick: () => {},
     },
   ];
 
