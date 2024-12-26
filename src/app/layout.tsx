@@ -20,9 +20,9 @@ export default function RootLayout({
       <body>
         <AuthProvider>
           <PlayerProvider>
-            <SvgProvider>
-              <ThemeProvider>{children}</ThemeProvider>
-            </SvgProvider>
+            <ThemeProvider>
+              <SvgProvider>{children}</SvgProvider>
+            </ThemeProvider>
           </PlayerProvider>
         </AuthProvider>
       </body>
