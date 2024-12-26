@@ -6,7 +6,7 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { useTheme } from "../hooks/useTheme";
+import { useTheme } from "./ThemeProvider";
 
 interface Dimensions {
   width: number;
@@ -34,7 +34,7 @@ export function SvgProvider({ children }: { children: React.ReactNode }) {
   const [dimensions, setDimensions] = useState<Record<string, Dimensions>>({});
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
-  const { currentTheme } = useTheme();
+  const { currentTheme, isLandscape } = useTheme();
 
   useEffect(() => {
     async function loadSvg() {
@@ -42,7 +42,10 @@ export function SvgProvider({ children }: { children: React.ReactNode }) {
         setIsLoading(true);
         setError(null);
 
-        const response = await fetch(currentTheme.svgPath);
+        const svgPath = isLandscape
+          ? currentTheme.landscapeSvgPath
+          : currentTheme.portraitSvgPath;
+        const response = await fetch(svgPath);
         if (!response.ok) {
           throw new Error(`Failed to load SVG: ${response.statusText}`);
         }
@@ -55,7 +58,9 @@ export function SvgProvider({ children }: { children: React.ReactNode }) {
 
         const dimensionsMap: Record<string, Dimensions> = {};
         const elements = {
-          iPod: svgRef.current.getElementById("iPod"),
+          iPod: svgRef.current.getElementById(
+            isLandscape ? "iPod-landscape" : "iPod"
+          ),
           Shell: svgRef.current.getElementById("Shell"),
           ScrollWheel: svgRef.current.getElementById("ScrollWheel"),
           Screen: svgRef.current.getElementById("Screen"),
@@ -67,12 +72,20 @@ export function SvgProvider({ children }: { children: React.ReactNode }) {
         Object.entries(elements).forEach(([key, element]) => {
           if (element instanceof SVGGraphicsElement) {
             const bbox = element.getBBox();
-            dimensionsMap[key] = {
+            const adjustedDimensions = {
               width: bbox.width,
               height: bbox.height,
-              x: bbox.x + (key === "Display" || key === "Header" ? 5 : 0),
-              y: bbox.y + (key === "Display" ? 30 : key === "Header" ? 5 : 0),
+              x:
+                key === "iPod"
+                  ? 0
+                  : bbox.x + (key === "Display" || key === "Header" ? 5 : 0),
+              y:
+                key === "iPod"
+                  ? 0
+                  : bbox.y +
+                    (key === "Display" ? 30 : key === "Header" ? 5 : 0),
             };
+            dimensionsMap[key] = adjustedDimensions;
           }
         });
         setDimensions(dimensionsMap);
@@ -84,7 +97,7 @@ export function SvgProvider({ children }: { children: React.ReactNode }) {
     }
 
     loadSvg();
-  }, [currentTheme.svgPath]);
+  }, [currentTheme, isLandscape]);
 
   useEffect(() => {
     const handleResize = () => {
@@ -111,7 +124,7 @@ export function SvgProvider({ children }: { children: React.ReactNode }) {
     const debouncedResize = debounce(handleResize, 250);
     window.addEventListener("resize", debouncedResize);
     return () => window.removeEventListener("resize", debouncedResize);
-  }, []);
+  }, [isLandscape]);
 
   return (
     <SvgContext.Provider value={{ svgRef, dimensions, isLoading, error }}>
