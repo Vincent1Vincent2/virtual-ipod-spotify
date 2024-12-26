@@ -1,5 +1,6 @@
 "use server";
 import prisma from "@/services/prisma";
+import { DBPlaylist } from "@/types/database/playlist";
 
 export const savePlaylistData = async (
   playlistHref: string,
@@ -37,19 +38,9 @@ export const savePlaylistData = async (
   }
 };
 
-export const getAllPlaylists = async (): Promise<
-  {
-    id: number;
-    playlist_href: string;
-    playlist_id: string;
-    playlist_name: string;
-    playlist_tracks: number;
-    playlist_uri: string;
-  }[]
-> => {
+export const getAllPlaylists = async (): Promise<DBPlaylist[]> => {
   try {
     const playlists = await prisma.playlist.findMany();
-
     return playlists;
   } catch (error) {
     console.error("Error fetching playlists:", error);
