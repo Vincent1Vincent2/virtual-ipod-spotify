@@ -42,8 +42,8 @@
 <path d="M28 37C28 31.4772 32.4772 27 38 27H303C308.523 27 313 31.4772 313 37V242C313 247.523 308.523 252 303 252H38C32.4771 252 28 247.523 28 242V37Z" fill="#434343" fill-opacity="0.8"/>
 </g>
 <g id="Display" filter="url(#filter0_i_13_68)">
-<path d="M33 32H308V247H33V32Z" fill="#EDF6FF"/>
-<path d="M33 32H308V247H33V32Z" fill="#EDF6FF"/>
+  <path d="M33 57H308V247H33V57Z" fill="#EDF6FF"/>
+  <path d="M33 57H308V247H33V57Z" fill="#EDF6FF"/>
 </g>
 <g id="Header">
 <rect id="Rectangle 5" x="33" y="32" width="275" height="25" fill="url(#paint2_linear_13_68)"/>
