@@ -5,6 +5,8 @@ export interface ClickWheelProps {
   onBackPress?: () => void;
   onForwardPress?: () => void;
   onPlayPausePress?: () => void;
+  onTabStart?: () => void;
+  isTabMode?: boolean;
 }
 
 export interface ClickWheelButtonProps {
