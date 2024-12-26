@@ -1,0 +1,17 @@
+.click-wheel-button:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.6),
+    0 0 0 1px rgba(255, 255, 255, 0.8);
+  border-radius: 50%;
+}
+
+.click-wheel-button:focus:not(:focus-visible) {
+  box-shadow: none;
+}
+
+.click-wheel-button:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.6),
+    0 0 0 1px rgba(255, 255, 255, 0.8);
+  border-radius: 50%;
+}
