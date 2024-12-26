@@ -7,7 +7,7 @@ export interface BaseMenuItem {
 
 export type ActionMenuItem = BaseMenuItem & {
   type: "action";
-  onClick: () => Promise<MenuState | void> | void;
+  onClick: () => Promise<MenuState | null | undefined> | void;
 };
 
 export type NavigationMenuItem = BaseMenuItem & {
@@ -23,5 +23,8 @@ export interface MenuState {
   title?: string;
   isDynamicContent?: boolean;
   currentPath?: string[];
+  parentState?: MenuState;
   tracks?: SpotifyTrack[];
+  showTrackView?: boolean;
+  currentTrack?: SpotifyTrack;
 }

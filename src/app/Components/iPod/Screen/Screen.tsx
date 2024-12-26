@@ -1,16 +1,36 @@
+"use client";
+import { usePlayer } from "@/app/providers/PlayerProvider";
 import { MenuItem } from "@/types/iPod/Screen";
 import { SpotifyTrack } from "@/types/spotify/track";
+import { formatDuration } from "@/utils/Format";
+import React, { useEffect, useRef } from "react";
 import "./Screen.css";
+
+const TrackInfo = ({ track }: { track: SpotifyTrack }) => (
+  <div className="track-info">
+    <img
+      src={track.album?.images?.[0]?.url || "/api/placeholder/300/300"}
+      alt={track.name}
+      className="track-cover"
+    />
+    <div className="track-details">
+      <p className="track-title">{track.name}</p>
+      <p className="track-artist">{track.artists?.[0]?.name}</p>
+    </div>
+  </div>
+);
 
 interface ScreenProps {
   menuItems: MenuItem[];
   selectedIndex: number;
   hoveredIndex?: number | null;
-  onMenuSelect: (item: MenuItem) => void;
+  onMenuSelect?: (item: any) => void;
   onMenuItemHover?: (index: number) => void;
   isDynamicContent?: boolean;
   tracks?: SpotifyTrack[];
+  showTrackView: boolean;
 }
+
 export const Screen: React.FC<ScreenProps> = ({
   menuItems,
   selectedIndex,
@@ -19,9 +39,32 @@ export const Screen: React.FC<ScreenProps> = ({
   onMenuItemHover,
   isDynamicContent,
   tracks,
+
+  showTrackView,
 }) => {
+  const { currentTrack } = usePlayer();
+
+  const scrollContainerRef = useRef<HTMLUListElement | null>(null);
+
+  const isCurrentlyPlaying = (track: SpotifyTrack) =>
+    currentTrack && track.id === currentTrack.id;
+
+  useEffect(() => {
+    if (scrollContainerRef.current) {
+      const selectedElement = scrollContainerRef.current.children[
+        selectedIndex
+      ] as HTMLElement;
+      if (selectedElement) {
+        selectedElement.scrollIntoView({
+          block: "nearest",
+          behavior: "smooth",
+        });
+      }
+    }
+  }, [selectedIndex]);
+
   const handleItemClick = (item: MenuItem) => {
-    onMenuSelect(item);
+    onMenuSelect?.(item);
   };
 
   const handleItemHover = (index: number) => {
@@ -30,53 +73,53 @@ export const Screen: React.FC<ScreenProps> = ({
     }
   };
 
-  const formatDuration = (ms: number): string => {
-    const minutes = Math.floor(ms / 60000);
-    const seconds = Math.floor((ms % 60000) / 1000);
-    return `${minutes}:${seconds.toString().padStart(2, "0")}`;
-  };
-
-  if (isDynamicContent && tracks) {
-    return (
-      <div className="screen">
-        <div className="tracks-list">
-          {tracks.map((track, index) => (
-            <div
-              key={track.id}
-              className={`track-item ${
-                index === selectedIndex ? "track-item--selected" : ""
-              } ${hoveredIndex === index ? "track-item--hovered" : ""}`}
-            >
-              <span className="track-name">{track.name}</span>
-              <span className="track-duration">
-                {formatDuration(track.duration_ms)}
-              </span>
-            </div>
-          ))}
-        </div>
-      </div>
-    );
+  if (showTrackView && currentTrack) {
+    return <TrackInfo track={currentTrack} />;
   }
 
   return (
-    <div className="screen">
-      <div className="menu-list">
-        {menuItems.map((item, index) => (
-          <div
-            key={`${item.label}-${index}`}
-            className={`menu-item ${
-              index === selectedIndex ? "menu-item--selected" : ""
-            } ${hoveredIndex === index ? "menu-item--hovered" : ""}`}
-            onClick={() => handleItemClick(item)}
-            onMouseEnter={() => handleItemHover(index)}
-            onMouseLeave={() => handleItemHover(selectedIndex)}
-            role="button"
-            tabIndex={0}
-          >
-            {item.label}
-          </div>
-        ))}
-      </div>
-    </div>
+    <section className="screen">
+      <nav className={isDynamicContent ? "tracks-list" : "menu-list"}>
+        <ul ref={scrollContainerRef}>
+          {(isDynamicContent ? tracks || [] : menuItems).map((item, index) => (
+            <li
+              key={"id" in item ? item.id : `label-${index}`}
+              className={`
+                ${
+                  index === selectedIndex
+                    ? isDynamicContent
+                      ? "track-item--selected"
+                      : "menu-item--selected"
+                    : ""
+                }
+                ${hoveredIndex === index ? "hovered" : ""}
+                ${
+                  isDynamicContent && isCurrentlyPlaying(item as SpotifyTrack)
+                    ? "currently-playing"
+                    : ""
+                }
+              `.trim()}
+              onClick={() => handleItemClick(item as MenuItem)}
+              onMouseEnter={() => handleItemHover(index)}
+              onMouseLeave={() => handleItemHover(selectedIndex)}
+            >
+              {isDynamicContent ? (
+                <div>
+                  <span className="track-name">
+                    {(item as SpotifyTrack).name}
+                  </span>
+                  <span className="track-duration">
+                    {formatDuration((item as SpotifyTrack).duration_ms)}
+                  </span>
+                </div>
+              ) : (
+                (item as MenuItem).label
+              )}
+            </li>
+          ))}
+        </ul>
+      </nav>
+      <footer className="screen-footer">Footer</footer>
+    </section>
   );
 };
