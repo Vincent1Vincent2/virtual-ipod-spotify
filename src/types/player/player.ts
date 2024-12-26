@@ -1,4 +1,5 @@
 import { PlaybackController } from "@/helpers/PlaybackController";
+import { SpotifyTrack } from "../spotify/track";
 
 export interface PlayerState {
   isPlaying: boolean;
@@ -6,11 +7,12 @@ export interface PlayerState {
 }
 export interface PlayerContextType {
   isPlaying: boolean | null;
-  playPause: () => void;
-  backTrack: () => void;
-  skipTrack: () => void;
+  playPause: () => Promise<void>;
+  backTrack: () => Promise<void>;
+  skipTrack: () => Promise<void>;
   error: string | null;
   controller: PlaybackController | null;
+  currentTrack: SpotifyTrack | null;
 }
 
 export interface SpotifyPlaybackState {

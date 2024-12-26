@@ -1,9 +1,12 @@
+import { SpotifyTrack } from "@/types/spotify/track";
+
 export class PlaybackController {
   private auth: any;
   private baseUrl: string;
   private initialized: boolean;
   private currentDeviceId: string | null;
   private currentContext: any;
+  private currentTrack: SpotifyTrack | null = null;
 
   constructor(auth: any) {
     this.auth = auth;
@@ -17,6 +20,14 @@ export class PlaybackController {
     if (!this.initialized) {
       await this.initialize();
     }
+  }
+
+  setCurrentTrack(track: SpotifyTrack) {
+    this.currentTrack = track;
+  }
+
+  getCurrentTrack(): SpotifyTrack | null {
+    return this.currentTrack;
   }
 
   async initialize() {
