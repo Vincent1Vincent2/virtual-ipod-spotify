@@ -1,4 +1,4 @@
-import { PlaybackController } from "@/services/PlaybackController";
+import { PlaybackController } from "@/helpers/PlaybackController";
 
 export interface PlayerState {
   isPlaying: boolean;

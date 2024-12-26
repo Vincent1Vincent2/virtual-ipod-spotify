@@ -38,7 +38,7 @@ export const ClickWheel: React.FC<
   };
 
   return (
-    <div className="absolute" style={{ width: "200px", height: "200px" }}>
+    <div>
       <TouchRing onRingTurn={onRingTurn} />
       <ClickWheelControls
         onButtonPress={handleButtonPress}

@@ -2,7 +2,7 @@
 import { getAllPlaylists } from "@/api/database/playlist";
 import { getUserPlaylists } from "@/api/user/playlists";
 import { getPlaylistTracks } from "@/api/user/tracks";
-import { PlaybackController } from "@/services/PlaybackController";
+import { PlaybackController } from "@/helpers/PlaybackController";
 import { MenuItem, MenuState } from "@/types/iPod/Screen";
 import { SpotifyPlaylist } from "@/types/spotify/playlist";
 import { SpotifyTrack } from "@/types/spotify/track";
