@@ -1,4 +1,4 @@
-import { useTheme } from "@/app/hooks/useTheme";
+import { useTheme } from "@/app/providers/ThemeProvider";
 import { IPOD_THEMES } from "@/app/themes";
 
 export function ThemeSwitcher() {
