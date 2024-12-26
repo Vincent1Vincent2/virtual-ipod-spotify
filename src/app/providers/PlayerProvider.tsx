@@ -1,6 +1,6 @@
 "use client";
 
-import { PlaybackController } from "@/services/PlaybackController";
+import { PlaybackController } from "@/helpers/PlaybackController";
 import { PlayerContextType, PlayerProviderProps } from "@/types/player/player";
 import React, {
   createContext,

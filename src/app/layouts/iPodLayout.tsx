@@ -1,24 +1,18 @@
 "use client";
 import { MenuState } from "@/types/iPod/Screen";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { ClickWheel } from "../Components/iPod/ClickWheel/ClickWheel";
 import { AuthScreen } from "../Components/iPod/Screen/AuthScreen";
 import { Screen } from "../Components/iPod/Screen/Screen";
 import { createMenu } from "../Components/Menu/Menu";
-import { useTheme } from "../hooks/useTheme";
 import { useAuth } from "../providers/AuthProvider";
 import { usePlayer } from "../providers/PlayerProvider";
-
-interface Dimensions {
-  width: number;
-  height: number;
-}
+import { useSvg } from "../providers/SvgProvider";
 
 const IPodLayout: React.FC = () => {
   const { isAuthenticated, accessToken } = useAuth();
   const { controller, playPause, skipTrack, backTrack } = usePlayer();
-  const { currentTheme } = useTheme();
-  const svgRef = useRef<SVGSVGElement>(null);
+  const { svgRef, dimensions, isLoading } = useSvg();
 
   const [currentView, setCurrentView] = useState<MenuState>({
     items: [],
@@ -28,8 +22,6 @@ const IPodLayout: React.FC = () => {
   const [menuStack, setMenuStack] = useState<MenuState[]>([]);
   const [isKeyboardNavigating, setIsKeyboardNavigating] = useState(false);
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [dimensions, setDimensions] = useState<Record<string, Dimensions>>({});
 
   useEffect(() => {
     if (accessToken) {
@@ -68,10 +60,7 @@ const IPodLayout: React.FC = () => {
         const result = await selectedItem.onClick();
         if (result) {
           setMenuStack((prev) => [...prev, currentView]);
-          setCurrentView({
-            ...result,
-            selectedIndex: 0,
-          });
+          setCurrentView({ ...result, selectedIndex: 0 });
         }
       } catch (error) {
         console.error("Action failed:", error);
@@ -89,22 +78,10 @@ const IPodLayout: React.FC = () => {
 
   const handleMenuItemHover = (index: number) => {
     if (!isKeyboardNavigating) {
-      setCurrentView((prev) => ({
-        ...prev,
-        selectedIndex: index,
-      }));
+      setCurrentView((prev) => ({ ...prev, selectedIndex: index }));
       setHoveredIndex(index);
     }
   };
-
-  useEffect(() => {
-    const handleKeyUp = () => {
-      setTimeout(() => setIsKeyboardNavigating(false), 100);
-    };
-
-    window.addEventListener("keyup", handleKeyUp);
-    return () => window.removeEventListener("keyup", handleKeyUp);
-  }, []);
 
   const handleBackPress = () => {
     if (!isAuthenticated || menuStack.length === 0) return;
@@ -139,11 +116,11 @@ const IPodLayout: React.FC = () => {
           handleSelectPress();
           break;
         case "Backspace":
-          handleBackPress(); // Changed from handleMenuPress to handleBackPress
+          handleBackPress();
           break;
       }
     },
-    [isAuthenticated, handleSelectPress, handleBackPress] // Added necessary dependencies
+    [isAuthenticated, handleSelectPress, handleBackPress]
   );
 
   useEffect(() => {
@@ -153,44 +130,13 @@ const IPodLayout: React.FC = () => {
   }, [handleKeyboardNavigation]);
 
   useEffect(() => {
-    const loadSvg = async () => {
-      try {
-        const response = await fetch(currentTheme.svgPath);
-        const svgText = await response.text();
-        if (svgRef.current) {
-          svgRef.current.innerHTML = svgText;
-          const dimensionsMap: Record<string, Dimensions> = {};
-          const elements = svgRef.current.querySelectorAll("g[id]");
-          elements.forEach((element) => {
-            if (element instanceof SVGGraphicsElement) {
-              const bbox = element.getBBox();
-              dimensionsMap[element.id] = {
-                width: bbox.width,
-                height: bbox.height,
-              };
-            }
-          });
-          setDimensions(dimensionsMap);
-        }
-      } catch (error) {
-        console.error("Error loading SVG:", error);
-      } finally {
-        setIsLoading(false);
-      }
+    const handleKeyUp = () => {
+      setTimeout(() => setIsKeyboardNavigating(false), 100);
     };
 
-    setIsLoading(true);
-    loadSvg();
-  }, [currentTheme.svgPath]);
-
-  const getElementStyle = (elementClass: string): React.CSSProperties => {
-    const svgId = elementClass.split(" ").pop();
-    if (!svgId || !dimensions[svgId]) return {};
-    return {
-      width: `${dimensions[svgId].width}px`,
-      height: `${dimensions[svgId].height}px`,
-    };
-  };
+    window.addEventListener("keyup", handleKeyUp);
+    return () => window.removeEventListener("keyup", handleKeyUp);
+  }, []);
 
   const handleForwardPress = () => {
     if (!isAuthenticated) return;
@@ -210,7 +156,7 @@ const IPodLayout: React.FC = () => {
   return (
     <div className="ipod-container">
       {isLoading && (
-        <div className={`skeleton-loader${isLoading ? " loading" : ""}`}>
+        <div className="skeleton-loader loading">
           <div className="animate-pulse">
             <div className="screen-area" />
             <div className="wheel-area">
@@ -229,21 +175,56 @@ const IPodLayout: React.FC = () => {
         />
       </div>
 
-      {!isLoading && (
+      {!isLoading && dimensions.iPod && (
         <div
           className="ipod-content-wrapper iPod"
-          style={getElementStyle("iPod")}
+          style={{
+            position: "absolute",
+            width: `${dimensions.iPod.width}px`,
+            height: `${dimensions.iPod.height}px`,
+          }}
         >
-          <div className="ipod-overlay Shell" style={getElementStyle("Shell")}>
+          <div
+            className="ipod-overlay Shell"
+            style={{
+              position: "absolute",
+              width: `${dimensions.Shell?.width}px`,
+              height: `${dimensions.Shell?.height}px`,
+            }}
+          >
             <div
               className="screen-container Screen"
-              style={getElementStyle("Screen")}
+              style={{
+                position: "absolute",
+                width: `${dimensions.Screen?.width}px`,
+                height: `${dimensions.Screen?.height}px`,
+                top: `${dimensions.Screen?.y}px`,
+                left: `${dimensions.Screen?.x}px`,
+                background: "transparent",
+              }}
             >
               <div
                 className="screen-header Header"
-                style={getElementStyle("Header")}
+                style={{
+                  position: "absolute",
+                  width: `${dimensions.Header?.width}px`,
+                  height: `${dimensions.Header?.height}px`,
+                  top: "5px",
+                  left: "5px",
+                  background: "transparent",
+                }}
               />
-              <div className="screen-content Display">
+              <div
+                className="screen-content Display"
+                style={{
+                  position: "absolute",
+                  width: `${dimensions.Display?.width}px`,
+                  height: `${dimensions.Display?.height}px`,
+                  top: "30px",
+                  left: "5px",
+                  background: "transparent",
+                }}
+              >
                 {!isAuthenticated ? (
                   <AuthScreen />
                 ) : (
@@ -263,7 +244,16 @@ const IPodLayout: React.FC = () => {
               </div>
             </div>
 
-            <div className="click-wheel-container">
+            <div
+              className="click-wheel-container"
+              style={{
+                position: "absolute",
+                top: `${dimensions.ScrollWheel?.y}px`,
+                left: `${dimensions.ScrollWheel?.x}px`,
+                width: `${dimensions.ScrollWheel?.width}px`,
+                height: `${dimensions.ScrollWheel?.height}px`,
+              }}
+            >
               <div className="touch-ring" />
               <div className="select-button" />
               <ClickWheel
