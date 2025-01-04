@@ -13,16 +13,9 @@ import { useTheme } from "../providers/ThemeProvider";
 
 const IPodLayout: React.FC = () => {
   const { isAuthenticated, accessToken } = useAuth();
-  const {
-    controller,
-    playPause,
-    skipTrack,
-    backTrack,
-    currentTrack,
-    isPlaying,
-  } = usePlayer();
+  const { controller, playPause, skipTrack, backTrack } = usePlayer();
   const { svgRef, dimensions, isLoading } = useSvg();
-  const { currentTheme, isLandscape } = useTheme();
+  const { isLandscape } = useTheme();
   const [currentView, setCurrentView] = useState<MenuState>({
     items: [],
     selectedIndex: 0,
@@ -32,6 +25,15 @@ const IPodLayout: React.FC = () => {
   const [isKeyboardNavigating, setIsKeyboardNavigating] = useState(false);
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
   const [isTabNavigating, setIsTabNavigating] = useState(false);
+
+  // Verify all required dimensions are present
+  const hasAllDimensions =
+    dimensions.iPod &&
+    dimensions.Shell &&
+    dimensions.ScrollWheel &&
+    dimensions.Screen &&
+    dimensions.Display &&
+    dimensions.Header;
 
   useEffect(() => {
     if (accessToken) {
@@ -46,7 +48,6 @@ const IPodLayout: React.FC = () => {
 
   const handleWheelTurn = (direction: "clockwise" | "counterclockwise") => {
     if (!isAuthenticated) return;
-
     setCurrentView((prev) => ({
       ...prev,
       selectedIndex:
@@ -61,7 +62,6 @@ const IPodLayout: React.FC = () => {
 
   const handleSelectPress = async () => {
     if (!isAuthenticated) return;
-
     const selectedItem = currentView.items[currentView.selectedIndex];
     if (!selectedItem) return;
 
@@ -69,7 +69,6 @@ const IPodLayout: React.FC = () => {
       try {
         const result = await selectedItem.onClick();
         if (result) {
-          // Only add to menu stack if it's not a track view
           if (!result.showTrackView) {
             setMenuStack((prev) => [...prev, currentView]);
           }
@@ -115,7 +114,6 @@ const IPodLayout: React.FC = () => {
   const handleKeyboardNavigation = useCallback(
     (event: KeyboardEvent) => {
       if (!isAuthenticated || isTabNavigating) return;
-
       switch (event.key) {
         case "ArrowDown":
         case "ArrowUp":
@@ -129,7 +127,6 @@ const IPodLayout: React.FC = () => {
           setHoveredIndex(null);
           break;
         case "Enter":
-          // Only handle Enter if not in tab mode
           if (!isTabNavigating) {
             handleSelectPress();
           }
@@ -143,7 +140,6 @@ const IPodLayout: React.FC = () => {
     [isAuthenticated, handleSelectPress, handleBackPress, isTabNavigating]
   );
 
-  // Add handlers for tab navigation
   const handleTabStart = () => {
     setIsTabNavigating(true);
     setIsKeyboardNavigating(false);
@@ -161,21 +157,6 @@ const IPodLayout: React.FC = () => {
       window.removeEventListener("mousedown", handleMouseDown);
     };
   }, [handleKeyboardNavigation]);
-
-  const handleForwardPress = () => {
-    if (!isAuthenticated) return;
-    skipTrack();
-  };
-
-  const handlePlayPausePress = () => {
-    if (!isAuthenticated) return;
-    playPause();
-  };
-
-  const handleBackwardPress = () => {
-    if (!isAuthenticated) return;
-    backTrack();
-  };
 
   return (
     <article className={`ipod-container ${isLandscape ? "landscape" : ""}`}>
@@ -199,7 +180,7 @@ const IPodLayout: React.FC = () => {
         />
       </section>
 
-      {!isLoading && dimensions.iPod && (
+      {!isLoading && hasAllDimensions && (
         <main
           className={`ipod-content-wrapper iPod`}
           style={{
@@ -212,18 +193,18 @@ const IPodLayout: React.FC = () => {
             className="ipod-overlay Shell"
             style={{
               position: "absolute",
-              width: `${dimensions.Shell?.width}px`,
-              height: `${dimensions.Shell?.height}px`,
+              width: `${dimensions.Shell.width}px`,
+              height: `${dimensions.Shell.height}px`,
             }}
           >
             <section
               className="screen-container Screen"
               style={{
                 position: "absolute",
-                width: `${dimensions.Screen?.width}px`,
-                height: `${dimensions.Screen?.height}px`,
-                top: `${dimensions.Screen?.y}px`,
-                left: `${dimensions.Screen?.x}px`,
+                width: `${dimensions.Screen.width}px`,
+                height: `${dimensions.Screen.height}px`,
+                top: `${dimensions.Screen.y}px`,
+                left: `${dimensions.Screen.x}px`,
                 background: "transparent",
               }}
             >
@@ -233,8 +214,8 @@ const IPodLayout: React.FC = () => {
                 className="screen-content Display"
                 style={{
                   position: "absolute",
-                  width: `${dimensions.Display?.width}px`,
-                  height: `${dimensions.Display?.height}px`,
+                  width: `${dimensions.Display.width}px`,
+                  height: `${dimensions.Display.height}px`,
                   top: "30px",
                   left: "5px",
                   background: "transparent",
@@ -264,10 +245,10 @@ const IPodLayout: React.FC = () => {
               className="click-wheel-container"
               style={{
                 position: "absolute",
-                top: `${dimensions.ScrollWheel?.y}px`,
-                left: `${dimensions.ScrollWheel?.x}px`,
-                width: `${dimensions.ScrollWheel?.width}px`,
-                height: `${dimensions.ScrollWheel?.height}px`,
+                top: `${dimensions.ScrollWheel.y}px`,
+                left: `${dimensions.ScrollWheel.x}px`,
+                width: `${dimensions.ScrollWheel.width}px`,
+                height: `${dimensions.ScrollWheel.height}px`,
               }}
             >
               <section className="touch-ring" />
@@ -276,9 +257,9 @@ const IPodLayout: React.FC = () => {
                 onRingTurn={handleWheelTurn}
                 onMenuPress={handleMenuPress}
                 onSelectPress={handleSelectPress}
-                onBackPress={handleBackwardPress}
-                onForwardPress={handleForwardPress}
-                onPlayPausePress={handlePlayPausePress}
+                onBackPress={handleBackPress}
+                onForwardPress={skipTrack}
+                onPlayPausePress={playPause}
                 canGoBack={menuStack.length > 0}
                 onTabStart={handleTabStart}
                 isTabMode={isTabNavigating}
