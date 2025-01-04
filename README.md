@@ -96,12 +96,12 @@ npm run dev
 #### Slutrapport (2-3 sidor)
 
 - [x] Engelsk abstract
-- [ ] Tech stack & motivering
+- [x] Tech stack & motivering
 - [ ] Process dokumentation
 
 #### Deploy
 
-- [ ] Live hosting
+- [x] Live hosting
 
 ### 🌟 Väl Godkänd (VG) Krav
 
