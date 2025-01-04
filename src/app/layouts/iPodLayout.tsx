@@ -6,7 +6,7 @@ import { Header } from "../Components/iPod/Header/Header";
 import { AuthScreen } from "../Components/iPod/Screen/AuthScreen";
 import { Screen } from "../Components/iPod/Screen/Screen";
 import { createMenu } from "../Components/Menu/Menu";
-import { useAuth } from "../providers/AuthProvider";
+import { useAuth } from "../providers/AuthProviderContent";
 import { usePlayer } from "../providers/PlayerProvider";
 import { useSvg } from "../providers/SvgProvider";
 import { useTheme } from "../providers/ThemeProvider";

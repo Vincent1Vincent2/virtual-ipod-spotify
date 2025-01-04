@@ -11,7 +11,7 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { useAuth } from "./AuthProvider";
+import { useAuth } from "./AuthProviderContent";
 
 export const PlayerContext = createContext<PlayerContextType>({
   isPlaying: null,

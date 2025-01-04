@@ -1,4 +1,4 @@
-import { useAuth } from "@/app/providers/AuthProvider";
+import { useAuth } from "@/app/providers/AuthProviderContent";
 
 export const AuthScreen = () => {
   const { startAuth } = useAuth();

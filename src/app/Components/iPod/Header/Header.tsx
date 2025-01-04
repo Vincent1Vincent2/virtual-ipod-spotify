@@ -1,5 +1,5 @@
 "use client";
-import { useAuth } from "@/app/providers/AuthProvider";
+import { useAuth } from "@/app/providers/AuthProviderContent";
 import { usePlayer } from "@/app/providers/PlayerProvider";
 import { useEffect, useState } from "react";
 import "./Header.css";
