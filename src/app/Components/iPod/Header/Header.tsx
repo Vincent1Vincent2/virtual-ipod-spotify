@@ -43,11 +43,7 @@ export const Header: React.FC<HeaderProps> = ({ dimensions }) => {
     >
       <nav className="header-nav">
         <ul className="header-list">
-          <li className="header-item">
-            <button onClick={logout} className="header-button" tabIndex={15}>
-              ×
-            </button>
-          </li>
+          <li className="header-item"></li>
           <li className="header-item header-track">{currentTrackName}</li>
           <li className="battery-status">100%</li>
         </ul>

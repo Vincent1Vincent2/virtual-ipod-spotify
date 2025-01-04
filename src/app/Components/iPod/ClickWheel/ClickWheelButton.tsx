@@ -16,7 +16,6 @@ export const ClickWheelButton: React.FC<ClickWheelButtonProps> = ({
   onPress,
   onRelease,
   className,
-  tabIndex = 0,
   "aria-label": ariaLabel,
   onTabStart,
   isTabMode,
@@ -66,7 +65,6 @@ export const ClickWheelButton: React.FC<ClickWheelButtonProps> = ({
     <button
       id={buttonId}
       className={className}
-      tabIndex={tabIndex}
       aria-label={ariaLabel}
       onFocus={handleFocus}
       onKeyDown={handleKeyDown}

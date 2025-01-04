@@ -136,7 +136,6 @@ const TouchRing: React.FC<TouchRingProps> = ({
   return (
     <div
       className="touch-ring-area"
-      tabIndex={10}
       role="slider"
       aria-label="iPod click wheel"
       onMouseDown={handleStart}

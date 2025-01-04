@@ -31,7 +31,6 @@ export const ClickWheelControls: React.FC<ClickWheelControlsProps> = ({
           onPress={() => onButtonPress("menu")}
           onRelease={onButtonRelease}
           aria-label={canGoBack ? "Back to previous menu" : "Menu"}
-          tabIndex={1}
           onTabStart={onTabStart}
         />
         <ClickWheelButton
@@ -40,7 +39,6 @@ export const ClickWheelControls: React.FC<ClickWheelControlsProps> = ({
           onPress={() => onButtonPress("back")}
           onRelease={onButtonRelease}
           aria-label="Previous item"
-          tabIndex={2}
           onTabStart={onTabStart}
         />
         <ClickWheelButton
@@ -49,7 +47,6 @@ export const ClickWheelControls: React.FC<ClickWheelControlsProps> = ({
           onPress={() => onButtonPress("select")}
           onRelease={onButtonRelease}
           aria-label="Select current item"
-          tabIndex={3}
           onTabStart={onTabStart}
         />
         <ClickWheelButton
@@ -58,7 +55,6 @@ export const ClickWheelControls: React.FC<ClickWheelControlsProps> = ({
           onPress={() => onButtonPress("forward")}
           onRelease={onButtonRelease}
           aria-label="Next item"
-          tabIndex={4}
           onTabStart={onTabStart}
         />
       </div>
@@ -69,7 +65,6 @@ export const ClickWheelControls: React.FC<ClickWheelControlsProps> = ({
           onPress={() => onButtonPress("play")}
           onRelease={onButtonRelease}
           aria-label="Play or pause"
-          tabIndex={5}
           onTabStart={onTabStart}
         />
       </div>

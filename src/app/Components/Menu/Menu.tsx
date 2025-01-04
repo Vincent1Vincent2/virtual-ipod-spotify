@@ -244,6 +244,61 @@ export const createMenu = (
         return globalPlaylistState;
       },
     },
+    {
+      type: "action",
+      label: "Shuffle All Tracks",
+      requiresAuth: true,
+      async onClick(): Promise<MenuState> {
+        const playlists = await safeApiCall(() => getAllPlaylists());
+        if (!playlists)
+          throw new Error("No saved tracks found, try signing out and in");
+
+        const globalPlaylistState: MenuState = {
+          items: [],
+          selectedIndex: 0,
+          title: "Global Playlists",
+          currentPath: [...(currentPath || []), "Browse Global Playlists"],
+        };
+
+        globalPlaylistState.items = playlists.map(
+          (playlist: { playlist_name: string; playlist_id: string }) => ({
+            type: "action",
+            label: playlist.playlist_name,
+            onClick: async () => {
+              if (!accessToken) return null;
+              const tracks = await safeApiCall(() =>
+                getPlaylistTracks(accessToken, playlist.playlist_id)
+              );
+              if (!tracks) return null;
+
+              return {
+                items: tracks.map(
+                  (track: { track: SpotifyTrack }, index: number) =>
+                    createTrackMenuItem(
+                      track.track,
+                      {
+                        contextUri: `spotify:playlist:${playlist.playlist_id}`,
+                        name: playlist.playlist_name,
+                      },
+                      index,
+                      globalPlaylistState
+                    )
+                ),
+                selectedIndex: 0,
+                title: playlist.playlist_name,
+                currentPath: [
+                  ...(globalPlaylistState.currentPath || []),
+                  playlist.playlist_name,
+                ],
+                parentState: globalPlaylistState,
+              };
+            },
+          })
+        );
+
+        return globalPlaylistState;
+      },
+    },
   ];
 
   return menuItems.filter((item) => !(item.requiresAuth && !accessToken));
