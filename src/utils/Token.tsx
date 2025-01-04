@@ -11,7 +11,8 @@ import { useEffect, useState } from "react";
 
 const SPOTIFY_CONFIG: SpotifyConfig = {
   clientId: process.env.NEXT_PUBLIC_CLIENT_ID || "",
-  redirectUri: "http://localhost:3000/",
+  redirectUri:
+    "https://spotipod-itkbr4ggd-vincent1vincent2s-projects.vercel.app/",
   scope:
     "user-read-private user-read-email user-read-playback-state user-modify-playback-state user-read-currently-playing app-remote-control streaming playlist-read-private playlist-read-collaborative playlist-modify-private playlist-modify-public user-follow-modify user-follow-read user-read-playback-position user-top-read user-read-recently-played user-library-modify user-library-read",
   authUrl: "https://accounts.spotify.com/authorize",
