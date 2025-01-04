@@ -1,9 +1,12 @@
 "use client";
 
 import {
+  AUTH_CONFIG,
+  AUTH_STORAGE_KEYS,
   AuthContextType,
   AuthProviderProps,
   AuthState,
+  SpotifyTokenResponse,
 } from "@/types/auth/auth";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createContext, useContext, useEffect, useState } from "react";
@@ -17,8 +20,6 @@ export const AuthContext = createContext<AuthContextType>({
   startAuth: () => {},
 });
 
-const TOKEN_REFRESH_THRESHOLD = 10 * 1000; // 10 seconds before expiry
-
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [authState, setAuthState] = useState<AuthState>({
     isLoading: true,
@@ -29,8 +30,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const checkAndRefreshToken = async () => {
-    const expiryTime = localStorage.getItem("token_expiry");
+  const checkAndRefreshToken = async (): Promise<string | null> => {
+    const expiryTime = localStorage.getItem(AUTH_STORAGE_KEYS.TOKEN_EXPIRY);
     const currentTime = Date.now();
 
     if (!expiryTime) {
@@ -48,18 +49,21 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       return null;
     }
 
-    if (currentTime + TOKEN_REFRESH_THRESHOLD > parseInt(expiryTime)) {
+    if (
+      currentTime + AUTH_CONFIG.TOKEN_REFRESH_THRESHOLD >
+      parseInt(expiryTime)
+    ) {
       console.log("Token near expiry, attempting refresh");
       return await refreshToken();
     }
 
-    return localStorage.getItem("access_token");
+    return localStorage.getItem(AUTH_STORAGE_KEYS.ACCESS_TOKEN);
   };
 
-  const clearTokens = () => {
-    localStorage.removeItem("access_token");
-    localStorage.removeItem("refresh_token");
-    localStorage.removeItem("token_expiry");
+  const clearTokens = (): void => {
+    localStorage.removeItem(AUTH_STORAGE_KEYS.ACCESS_TOKEN);
+    localStorage.removeItem(AUTH_STORAGE_KEYS.REFRESH_TOKEN);
+    localStorage.removeItem(AUTH_STORAGE_KEYS.TOKEN_EXPIRY);
     setAuthState({
       isLoading: false,
       error: null,
@@ -67,9 +71,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     });
   };
 
-  const refreshToken = async () => {
+  const refreshToken = async (): Promise<string | null> => {
     try {
-      const refresh_token = localStorage.getItem("refresh_token");
+      const refresh_token = localStorage.getItem(
+        AUTH_STORAGE_KEYS.REFRESH_TOKEN
+      );
       if (!refresh_token) {
         throw new Error("No refresh token available");
       }
@@ -90,14 +96,20 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         throw new Error("Failed to refresh token");
       }
 
-      const data = await response.json();
-      const expiryTime = Date.now() + 50 * 60 * 1000; // 50 minutes
+      const data: SpotifyTokenResponse = await response.json();
+      const expiryTime = Date.now() + AUTH_CONFIG.TOKEN_EXPIRY_TIME;
 
-      localStorage.setItem("access_token", data.access_token);
-      localStorage.setItem("token_expiry", expiryTime.toString());
+      localStorage.setItem(AUTH_STORAGE_KEYS.ACCESS_TOKEN, data.access_token);
+      localStorage.setItem(
+        AUTH_STORAGE_KEYS.TOKEN_EXPIRY,
+        expiryTime.toString()
+      );
 
       if (data.refresh_token) {
-        localStorage.setItem("refresh_token", data.refresh_token);
+        localStorage.setItem(
+          AUTH_STORAGE_KEYS.REFRESH_TOKEN,
+          data.refresh_token
+        );
       }
 
       console.log(
@@ -157,7 +169,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             accessToken: null,
           });
 
-          const verifier = localStorage.getItem("code_verifier");
+          const verifier = localStorage.getItem(
+            AUTH_STORAGE_KEYS.CODE_VERIFIER
+          );
           if (!verifier) {
             throw new Error("No code verifier found");
           }
@@ -183,14 +197,23 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             throw new Error("Failed to exchange code for token");
           }
 
-          const data = await response.json();
-          const expiryTime = Date.now() + 50 * 60 * 1000; // 50 minutes
+          const data: SpotifyTokenResponse = await response.json();
+          const expiryTime = Date.now() + AUTH_CONFIG.TOKEN_EXPIRY_TIME;
 
-          localStorage.setItem("access_token", data.access_token);
-          localStorage.setItem("token_expiry", expiryTime.toString());
+          localStorage.setItem(
+            AUTH_STORAGE_KEYS.ACCESS_TOKEN,
+            data.access_token
+          );
+          localStorage.setItem(
+            AUTH_STORAGE_KEYS.TOKEN_EXPIRY,
+            expiryTime.toString()
+          );
 
           if (data.refresh_token) {
-            localStorage.setItem("refresh_token", data.refresh_token);
+            localStorage.setItem(
+              AUTH_STORAGE_KEYS.REFRESH_TOKEN,
+              data.refresh_token
+            );
           }
 
           console.log(
@@ -198,7 +221,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             new Date(expiryTime).toISOString()
           );
 
-          localStorage.removeItem("code_verifier");
+          localStorage.removeItem(AUTH_STORAGE_KEYS.CODE_VERIFIER);
 
           setAuthState({
             isLoading: false,
@@ -223,9 +246,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   }, [searchParams, router]);
 
   const logout = () => {
-    localStorage.removeItem("access_token");
-    localStorage.removeItem("refresh_token");
-    localStorage.removeItem("token_expiry");
+    localStorage.removeItem(AUTH_STORAGE_KEYS.ACCESS_TOKEN);
+    localStorage.removeItem(AUTH_STORAGE_KEYS.REFRESH_TOKEN);
+    localStorage.removeItem(AUTH_STORAGE_KEYS.TOKEN_EXPIRY);
     setAuthState({
       isLoading: false,
       error: null,

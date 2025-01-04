@@ -71,14 +71,14 @@ npm run dev
 
 #### Planering och Research
 
-- [ ] Målgruppsanalys
+- [x] Målgruppsanalys
 - [x] Projekthantering
 
 #### Design och Prototyping
 
 - [x] Figma wireframes/prototyp (UX/UI)
 - [ ] Responsiv design (2+ skärmstorlekar)
-- [ ] WCAG 2.1 compliance
+- [x] WCAG 2.1 compliance
 
 #### Applikationsutveckling
 
@@ -86,7 +86,7 @@ npm run dev
 - [x] PostgreSQL + Prisma integration
 - [x] State management
 - [x] Dynamiska, reaktiva komponenter
-- [ ] WCAG 2.1 & semantisk HTML
+- [x] WCAG 2.1 & semantisk HTML
 - [ ] Responsiv design (mobil + desktop)
 
 #### Versionshantering
@@ -95,7 +95,7 @@ npm run dev
 
 #### Slutrapport (2-3 sidor)
 
-- [ ] Engelsk abstract
+- [x] Engelsk abstract
 - [ ] Tech stack & motivering
 - [ ] Process dokumentation
 

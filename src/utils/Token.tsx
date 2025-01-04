@@ -1,9 +1,15 @@
 "use client";
 
+import {
+  AUTH_CONFIG,
+  AUTH_STORAGE_KEYS,
+  SpotifyConfig,
+  SpotifyTokenResponse,
+} from "@/types/auth/auth";
 import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
 
-const SPOTIFY_CONFIG = {
+const SPOTIFY_CONFIG: SpotifyConfig = {
   clientId: process.env.NEXT_PUBLIC_CLIENT_ID || "",
   redirectUri: "http://localhost:3000/",
   scope:
@@ -13,8 +19,8 @@ const SPOTIFY_CONFIG = {
 };
 
 function SpotifyAuth() {
-  const [error, setError] = useState("");
-  const [status, setStatus] = useState("initializing");
+  const [error, setError] = useState<string>("");
+  const [status, setStatus] = useState<string>("initializing");
 
   useEffect(() => {
     const handleAuth = async () => {
@@ -29,7 +35,7 @@ function SpotifyAuth() {
         }
 
         setStatus("starting auth flow");
-        const length = 128;
+        const length = AUTH_CONFIG.CODE_VERIFIER_LENGTH;
         const possible =
           "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 
@@ -47,14 +53,14 @@ function SpotifyAuth() {
           .replace(/\//g, "_")
           .replace(/=/g, "");
 
-        window.localStorage.setItem("code_verifier", codeVerifier);
+        localStorage.setItem(AUTH_STORAGE_KEYS.CODE_VERIFIER, codeVerifier);
 
         const authUrl = new URL(SPOTIFY_CONFIG.authUrl);
         const params = {
-          response_type: "code",
+          response_type: "code" as const,
           client_id: SPOTIFY_CONFIG.clientId,
           scope: SPOTIFY_CONFIG.scope,
-          code_challenge_method: "S256",
+          code_challenge_method: "S256" as const,
           code_challenge: challenge,
           redirect_uri: SPOTIFY_CONFIG.redirectUri,
         };
@@ -71,9 +77,11 @@ function SpotifyAuth() {
     handleAuth();
   }, []);
 
-  const getToken = async (code: string) => {
+  const getToken = async (code: string): Promise<void> => {
     try {
-      const codeVerifier = localStorage.getItem("code_verifier");
+      const codeVerifier = localStorage.getItem(
+        AUTH_STORAGE_KEYS.CODE_VERIFIER
+      );
 
       if (!codeVerifier) {
         throw new Error("No code verifier found in localStorage");
@@ -95,21 +103,29 @@ function SpotifyAuth() {
         body: requestBody,
       });
 
-      const data = await response.json();
-
-      if (data.access_token) {
-        localStorage.setItem("access_token", data.access_token);
-        if (data.refresh_token) {
-          localStorage.setItem("refresh_token", data.refresh_token);
-        }
-
-        localStorage.removeItem("code_verifier");
-
-        window.history.replaceState({}, document.title, "/");
-        window.location.reload();
-      } else {
+      if (!response.ok) {
         throw new Error("Token exchange failed");
       }
+
+      const data: SpotifyTokenResponse = await response.json();
+      const expiryTime = Date.now() + AUTH_CONFIG.TOKEN_EXPIRY_TIME;
+
+      localStorage.setItem(AUTH_STORAGE_KEYS.ACCESS_TOKEN, data.access_token);
+      if (data.refresh_token) {
+        localStorage.setItem(
+          AUTH_STORAGE_KEYS.REFRESH_TOKEN,
+          data.refresh_token
+        );
+      }
+      localStorage.setItem(
+        AUTH_STORAGE_KEYS.TOKEN_EXPIRY,
+        expiryTime.toString()
+      );
+
+      localStorage.removeItem(AUTH_STORAGE_KEYS.CODE_VERIFIER);
+
+      window.history.replaceState({}, document.title, "/");
+      window.location.reload();
     } catch (err) {
       console.error("Token exchange error:", err);
       setError(err instanceof Error ? err.message : "Failed to get token");
@@ -125,7 +141,7 @@ function SpotifyAuth() {
           <p className="mt-2 text-sm text-gray-600">Status: {status}</p>
           <button
             onClick={() => {
-              localStorage.removeItem("code_verifier");
+              localStorage.removeItem(AUTH_STORAGE_KEYS.CODE_VERIFIER);
               window.location.href = "/";
             }}
             className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
