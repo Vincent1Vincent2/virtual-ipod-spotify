@@ -32,7 +32,7 @@ const ShellSVG: React.FC<ShellSVGProps> = ({ type = "classic", children }) => {
       {/* Base Shell SVG */}
       <svg
         xmlns="http://www.w3.org/2000/svg"
-        viewBox="0 0 340 550"
+        viewBox="0 0 320 500"
         fill="none"
         className="absolute top-0 left-0 ipod-shell-svg"
       >

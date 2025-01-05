@@ -46,15 +46,26 @@ export function SvgProvider({ children }: { children: React.ReactNode }) {
           ? currentTheme.landscapeSvgPath
           : currentTheme.portraitSvgPath;
         const response = await fetch(svgPath);
-        if (!response.ok) {
+        if (!response.ok)
           throw new Error(`Failed to load SVG: ${response.statusText}`);
-        }
 
         const svgText = await response.text();
         if (!svgRef.current) return;
 
         svgRef.current.innerHTML = svgText;
+
+        // Wait for SVG to be rendered
         await new Promise(requestAnimationFrame);
+
+        const svgBBox = svgRef.current.getBoundingClientRect();
+        const viewBox = svgRef.current
+          .getAttribute("viewBox")
+          ?.split(" ")
+          .map(Number) || [0, 0, 340, 550];
+        const scale = Math.min(
+          svgBBox.width / viewBox[2],
+          svgBBox.height / viewBox[3]
+        );
 
         const dimensionsMap: Record<string, Dimensions> = {};
         const elements = {
@@ -63,31 +74,35 @@ export function SvgProvider({ children }: { children: React.ReactNode }) {
           ),
           Shell: svgRef.current.getElementById("Shell"),
           ScrollWheel: svgRef.current.getElementById("ScrollWheel"),
+          TouchRing: svgRef.current.getElementById("TouchRing"),
+          SelectButton: svgRef.current.getElementById("SelectButton"),
+          MenuButton: svgRef.current.getElementById("MenuButton"),
+          BackButton: svgRef.current.getElementById("BackButton"),
+          SkipButton: svgRef.current.getElementById("SkipButton"),
+          PlayPauseButton: svgRef.current.getElementById("PlayPauseButton"),
           Screen: svgRef.current.getElementById("Screen"),
           Display: svgRef.current.getElementById("Display"),
           Header: svgRef.current.getElementById("Header"),
-          Bezle: svgRef.current.getElementById("Bezle"),
         };
 
         Object.entries(elements).forEach(([key, element]) => {
           if (element instanceof SVGGraphicsElement) {
             const bbox = element.getBBox();
-            const adjustedDimensions = {
-              width: bbox.width,
-              height: bbox.height,
+            const headerHeight =
+              key === "Screen" ? dimensions.Header?.height || 0 : 0;
+            dimensionsMap[key] = {
+              width: bbox.width * scale,
+              height: bbox.height * scale - headerHeight,
               x:
-                key === "iPod"
-                  ? 0
-                  : bbox.x + (key === "Display" || key === "Header" ? 5 : 0),
+                bbox.x * scale +
+                (key === "Display" || key === "Header" ? 5 : 0),
               y:
-                key === "iPod"
-                  ? 0
-                  : bbox.y +
-                    (key === "Display" ? 30 : key === "Header" ? 5 : 0),
+                bbox.y * scale +
+                (key === "Display" ? 30 : key === "Header" ? 5 : 0),
             };
-            dimensionsMap[key] = adjustedDimensions;
           }
         });
+
         setDimensions(dimensionsMap);
       } catch (err) {
         setError(err instanceof Error ? err : new Error("Failed to load SVG"));
@@ -100,30 +115,51 @@ export function SvgProvider({ children }: { children: React.ReactNode }) {
   }, [currentTheme, isLandscape]);
 
   useEffect(() => {
-    const handleResize = () => {
+    const resizeObserver = new ResizeObserver(() => {
       if (svgRef.current) {
-        const elements = svgRef.current.querySelectorAll("g[id]");
+        const svgBBox = svgRef.current.getBoundingClientRect();
+        const viewBox = svgRef.current
+          .getAttribute("viewBox")
+          ?.split(" ")
+          .map(Number) || [0, 0, 340, 550];
+        const scale = Math.min(
+          svgBBox.width / viewBox[2],
+          svgBBox.height / viewBox[3]
+        );
+
         const newDimensions: Record<string, Dimensions> = {};
+        const elements = svgRef.current.querySelectorAll("g[id]");
 
         elements.forEach((element) => {
           if (element instanceof SVGGraphicsElement) {
             const bbox = element.getBBox();
-            newDimensions[element.id] = {
-              width: bbox.width,
-              height: bbox.height,
-              x: bbox.x,
-              y: bbox.y,
+            const id = element.id;
+
+            newDimensions[id] = {
+              width: bbox.width * scale,
+              height: bbox.height * scale,
+              x: bbox.x * scale + (id === "Display" || id === "Header" ? 5 : 0),
+              y:
+                bbox.y * scale +
+                (id === "Display"
+                  ? newDimensions.Header?.height || 30
+                  : id === "Header"
+                  ? 5
+                  : 0),
             };
           }
         });
+        console.log(newDimensions);
 
         setDimensions(newDimensions);
       }
-    };
+    });
 
-    const debouncedResize = debounce(handleResize, 250);
-    window.addEventListener("resize", debouncedResize);
-    return () => window.removeEventListener("resize", debouncedResize);
+    if (svgRef.current) {
+      resizeObserver.observe(svgRef.current);
+    }
+
+    return () => resizeObserver.disconnect();
   }, [isLandscape]);
 
   return (
@@ -134,15 +170,3 @@ export function SvgProvider({ children }: { children: React.ReactNode }) {
 }
 
 export const useSvg = () => useContext(SvgContext);
-
-function debounce(func: Function, wait: number) {
-  let timeout: NodeJS.Timeout;
-  return function executedFunction(...args: any[]) {
-    const later = () => {
-      clearTimeout(timeout);
-      func(...args);
-    };
-    clearTimeout(timeout);
-    timeout = setTimeout(later, wait);
-  };
-}
