@@ -76,7 +76,7 @@ npm run dev
 #### Design och Prototyping
 
 - [x] Figma wireframes/prototyp (UX/UI)
-- [ ] Responsiv design (2+ skärmstorlekar)
+- [x] Responsiv design (2+ skärmstorlekar)
 - [x] WCAG 2.1 compliance
 
 #### Applikationsutveckling
@@ -96,7 +96,7 @@ npm run dev
 
 - [x] Engelsk abstract
 - [x] Tech stack & motivering
-- [ ] Process dokumentation
+- [x] Process dokumentation
 
 #### Deploy
 
@@ -112,29 +112,29 @@ npm run dev
 
 #### Applikationsutveckling
 
-- [ ] Advanced state management
-- [ ] Optimerad kodbas
-- [ ] Komponentåteranvändning
+- [x] Advanced state management
+- [x] Optimerad kodbas
+- [x] Komponentåteranvändning
 - [ ] CRUD-operationer
-- [ ] Säker autentisering
-- [ ] Full responsivitet
+- [x] Säker autentisering
+- [x] Full responsivitet
 
 #### Versionshantering
 
 - [ ] Feature branches
 - [ ] Pull request workflow
 - [ ] Clean commit history
-- [ ] Detaljerad README
+- [x] Detaljerad README
 
 #### Deploy
 
 - [ ] CI/CD pipeline
-- [ ] Automatisk deployment
+- [x] Automatisk deployment
 
 #### Slutrapport (3-6 sidor)
 
 - [ ] Djupgående processanalys
-- [ ] Tekniska val & motiveringar
+- [x] Tekniska val & motiveringar
 - [ ] UX/UI dokumentation
 
 ## 📂 Projektstruktur
