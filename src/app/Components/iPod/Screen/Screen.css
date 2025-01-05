@@ -1,15 +1,72 @@
-.menu-item {
+.screen {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.screen-content,
+.tracks-list {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.screen-content ul,
+.tracks-list ul {
+  height: 100%;
+}
+
+.menu-item,
+.track-item {
+  padding: 0.375rem 0.75rem;
+  font-size: 0.875rem;
   transition: background-color 0.2s ease;
+  cursor: pointer;
 }
 
-.menu-item--selected {
-  background-color: blue;
+.menu-item--selected,
+.track-item--selected {
+  background-color: #3b82f6;
   color: white;
 }
 
-.menu-item:hover:not(.menu-item--selected) {
-  background-color: blue;
+.menu-item:hover:not(.menu-item--selected),
+.track-item:hover:not(.track-item--selected) {
+  background-color: #3b82f6;
   color: white;
+  opacity: 0.8;
+}
+
+.track-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1rem;
+}
+
+.track-cover {
+  width: 150px;
+  height: 150px;
+  object-fit: cover;
+  margin-bottom: 1rem;
+}
+
+.track-details {
+  text-align: center;
+}
+
+.track-title {
+  font-weight: bold;
+  margin-bottom: 0.5rem;
+}
+
+.track-artist {
+  color: #666;
+}
+
+.screen-footer {
+  padding: 0.5rem;
+  text-align: center;
+  border-top: 1px solid #eee;
 }
 
 .screen {
@@ -18,8 +75,50 @@
   height: 100%;
 }
 
+.menu-list::-webkit-scrollbar,
+.tracks-list::-webkit-scrollbar {
+  width: 4px;
+}
+
+.menu-list::-webkit-scrollbar-track,
+.tracks-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.menu-list::-webkit-scrollbar-thumb,
+.tracks-list::-webkit-scrollbar-thumb {
+  background-color: rgba(156, 163, 175, 0.5);
+  border-radius: 20px;
+}
+
 .menu-list ul,
 .tracks-list ul {
-  height: 100%;
-  overflow-y: auto;
+  margin: 0;
+  padding: 0;
+}
+
+.screen-footer {
+  padding: 0.5rem;
+  text-align: center;
+  border-top: 1px solid rgba(156, 163, 175, 0.2);
+}
+
+.menu-item,
+.track-item {
+  padding: 0.375rem 0.75rem;
+  font-size: 0.875rem;
+  transition: background-color 0.2s ease;
+}
+
+.menu-item--selected,
+.track-item--selected {
+  background-color: #3b82f6;
+  color: white;
+}
+
+.menu-item:hover:not(.menu-item--selected),
+.track-item:hover:not(.track-item--selected) {
+  background-color: #3b82f6;
+  color: white;
+  opacity: 0.8;
 }
