@@ -5,19 +5,23 @@ import { MenuItem } from "@/types/iPod/Screen";
 import { SpotifyTrack } from "@/types/spotify/track";
 import { formatDuration } from "@/utils/Format";
 import React, { useEffect, useRef } from "react";
+import Scrubber from "../Scrubber/Scrubber";
 import "./Screen.css";
 
 const TrackInfo = ({ track }: { track: SpotifyTrack }) => (
-  <div className="track-info">
-    <img
-      src={track.album?.images?.[0]?.url || "/api/placeholder/300/300"}
-      alt={track.name}
-      className="track-cover"
-    />
-    <div className="track-details">
-      <p className="track-title">{track.name}</p>
-      <p className="track-artist">{track.artists?.[0]?.name}</p>
+  <div className="track">
+    <div className="track-info">
+      <img
+        src={track.album?.images?.[0]?.url || "/api/placeholder/300/300"}
+        alt={track.name}
+        className="track-cover"
+      />
+      <div className="track-details">
+        <p className="track-title">{track.name}</p>
+        <p className="track-artist">{track.artists?.[0]?.name}</p>
+      </div>
     </div>
+    <Scrubber />
   </div>
 );
 
@@ -133,7 +137,7 @@ export const Screen: React.FC<ScreenProps> = ({
           ))}
         </ul>
       </nav>
-      <footer className="screen-footer">Footer</footer>
+      <footer className="screen-footer">Made by Vincent Ahlin</footer>
     </div>
   );
 };
