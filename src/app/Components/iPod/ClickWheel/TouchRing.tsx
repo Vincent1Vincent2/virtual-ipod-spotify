@@ -10,6 +10,7 @@ interface TouchRingProps {
   isTabMode?: boolean;
   style?: React.CSSProperties;
 }
+
 const TouchRing: React.FC<TouchRingProps> = ({
   onRingTurn,
   onBack,
@@ -59,7 +60,7 @@ const TouchRing: React.FC<TouchRingProps> = ({
       window.removeEventListener("keydown", handleKeyDown);
       window.removeEventListener("keyup", handleKeyUp);
     };
-  }, [isTabMode, onRingTurn, onSelect, onBack]);
+  }, [isTabMode, onRingTurn, onSelect, onBack, isCtrlPressed]);
 
   const getAngle = useCallback((e: React.MouseEvent | React.TouchEvent) => {
     const rect = e.currentTarget.getBoundingClientRect();
@@ -76,9 +77,7 @@ const TouchRing: React.FC<TouchRingProps> = ({
 
   const handleMove = useCallback(
     (e: React.MouseEvent | React.TouchEvent) => {
-      // Disable scrolling in tab mode
       if (isTabMode) return;
-
       if (!isScrolling) return;
       if (isTouchDevice.current && "touches" in e && e.touches.length > 1)
         return;
@@ -110,14 +109,13 @@ const TouchRing: React.FC<TouchRingProps> = ({
 
   const handleStart = useCallback(
     (e: React.MouseEvent | React.TouchEvent) => {
-      // For touch devices, check for swipe
       if ("touches" in e) {
         isTouchDevice.current = true;
         if (e.touches.length > 1) return;
       }
 
-      // In tab mode or without Ctrl pressed in mouse mode
-      if (!isTabMode && (isTouchDevice.current || isCtrlPressed)) {
+      // Allow touch devices always, and mouse when Ctrl is pressed
+      if (isTouchDevice.current || (!isTabMode && isCtrlPressed)) {
         setIsScrolling(true);
         lastAngleRef.current = getAngle(e);
         cumulativeAngleRef.current = 0;
@@ -127,9 +125,7 @@ const TouchRing: React.FC<TouchRingProps> = ({
   );
 
   const handleEnd = useCallback(() => {
-    // Disable touch scrolling in tab mode
     if (isTabMode) return;
-
     setIsScrolling(false);
     lastAngleRef.current = null;
     cumulativeAngleRef.current = 0;
@@ -153,9 +149,14 @@ const TouchRing: React.FC<TouchRingProps> = ({
         width: "100%",
         height: "100%",
         borderRadius: "50%",
-        // Disable interactions in tab mode
-
+        touchAction: "none",
+        userSelect: "none",
+        WebkitUserSelect: "none",
+        WebkitTouchCallout: "none",
+        cursor: isCtrlPressed ? "grab" : "default",
         zIndex: isCtrlPressed ? 2 : 0,
+        transition: "opacity 0.2s",
+        opacity: isCtrlPressed ? 1 : 0.5,
       }}
     />
   );
