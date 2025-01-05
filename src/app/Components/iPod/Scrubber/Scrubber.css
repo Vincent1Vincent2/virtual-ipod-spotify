@@ -1,0 +1,22 @@
+.progress-bar {
+  position: relative;
+  height: 8px;
+  background: #e5e5e5;
+  border-radius: 4px;
+  width: auto;
+}
+
+.progress-fill {
+  position: absolute;
+  height: 100%;
+  background: #3b82f6;
+  border-radius: 4px;
+}
+
+.time-display {
+  margin-top: 4px;
+  font-size: 14px;
+  color: #666;
+  display: flex;
+  justify-content: space-between;
+}
