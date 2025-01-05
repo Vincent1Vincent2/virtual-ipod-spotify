@@ -62,7 +62,25 @@ export const PlayerProvider: React.FC<PlayerProviderProps> = ({ children }) => {
           const playerInstance = new window.Spotify.Player({
             name: "Virtual iPod Spotify Player",
             getOAuthToken: (cb: (token: string) => void) => cb(accessToken),
+            volume: 1.0,
           });
+
+          // Add volume listener
+          playerInstance.addListener(
+            "initialization_error",
+            ({ message }: { message: string }) => {
+              console.error("Failed to initialize", message);
+            }
+          );
+
+          playerInstance.addListener("autoplay_failed", () => {
+            console.log("Autoplay failed");
+            // Try to resume audio context if it exists
+            if (playerInstance._options?.audioContext) {
+              (playerInstance._options.audioContext as AudioContext).resume();
+            }
+          });
+
           resolve(playerInstance);
         };
 
