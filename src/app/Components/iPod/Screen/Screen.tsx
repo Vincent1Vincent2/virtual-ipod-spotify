@@ -1,5 +1,6 @@
 "use client";
 import { usePlayer } from "@/app/providers/PlayerProvider";
+import { useSvg } from "@/app/providers/SvgProvider";
 import { MenuItem } from "@/types/iPod/Screen";
 import { SpotifyTrack } from "@/types/spotify/track";
 import { formatDuration } from "@/utils/Format";
@@ -39,11 +40,10 @@ export const Screen: React.FC<ScreenProps> = ({
   onMenuItemHover,
   isDynamicContent,
   tracks,
-
   showTrackView,
 }) => {
   const { currentTrack } = usePlayer();
-
+  const { dimensions } = useSvg();
   const scrollContainerRef = useRef<HTMLUListElement | null>(null);
 
   const isCurrentlyPlaying = (track: SpotifyTrack) =>
@@ -73,18 +73,32 @@ export const Screen: React.FC<ScreenProps> = ({
     }
   };
 
+  /*   if (showTrackView && currentTrack) {
+    return (
+      <div
+        className="screen-content"
+        style={{
+          height: dimensions.Display.height,
+          width: dimensions.Display.width,
+        }}
+      >
+        <TrackInfo track={currentTrack} />
+      </div>
+    );
+  } */
+
   if (showTrackView && currentTrack) {
     return <TrackInfo track={currentTrack} />;
   }
 
   return (
-    <section className="screen">
+    <div className="screen">
       <nav className={isDynamicContent ? "tracks-list" : "menu-list"}>
         <ul ref={scrollContainerRef}>
           {(isDynamicContent ? tracks || [] : menuItems).map((item, index) => (
             <li
               key={"id" in item ? item.id : `label-${index}`}
-              className={`
+              className={`menu-item
                 ${
                   index === selectedIndex
                     ? isDynamicContent
@@ -120,6 +134,6 @@ export const Screen: React.FC<ScreenProps> = ({
         </ul>
       </nav>
       <footer className="screen-footer">Footer</footer>
-    </section>
+    </div>
   );
 };

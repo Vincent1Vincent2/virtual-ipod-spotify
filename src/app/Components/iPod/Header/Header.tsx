@@ -43,7 +43,9 @@ export const Header: React.FC<HeaderProps> = ({ dimensions }) => {
     >
       <nav className="header-nav">
         <ul className="header-list">
-          <li className="header-item"></li>
+          <li className="header-item">
+            <h1 style={{ fontSize: "smaller" }}>SpotiPod</h1>
+          </li>
           <li className="header-item header-track">{currentTrackName}</li>
           <li className="battery-status">100%</li>
         </ul>

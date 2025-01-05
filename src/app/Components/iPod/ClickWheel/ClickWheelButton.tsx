@@ -5,7 +5,7 @@ export interface ClickWheelButtonProps {
   onPress: () => void;
   onRelease: () => void;
   className?: string;
-  tabIndex?: number;
+  style?: React.CSSProperties;
   "aria-label": string;
   onTabStart?: () => void;
   isTabMode?: boolean;
@@ -19,6 +19,7 @@ export const ClickWheelButton: React.FC<ClickWheelButtonProps> = ({
   "aria-label": ariaLabel,
   onTabStart,
   isTabMode,
+  style,
 }) => {
   const handleFocus = (e: React.FocusEvent) => {
     // Only trigger tab start if focus was not from a mouse click
@@ -65,6 +66,7 @@ export const ClickWheelButton: React.FC<ClickWheelButtonProps> = ({
     <button
       id={buttonId}
       className={className}
+      style={style}
       aria-label={ariaLabel}
       onFocus={handleFocus}
       onKeyDown={handleKeyDown}

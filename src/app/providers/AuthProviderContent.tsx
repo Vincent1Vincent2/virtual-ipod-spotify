@@ -189,7 +189,8 @@ export const AuthProviderContent: React.FC<AuthProviderProps> = ({
                 client_id: process.env.NEXT_PUBLIC_CLIENT_ID || "",
                 grant_type: "authorization_code",
                 code,
-                redirect_uri: "https://spotipod-one.vercel.app/",
+                redirect_uri:
+                  process.env.NEXT_REDIRECT_URI || "http://localhost:3000/",
                 code_verifier: verifier,
               }),
             }

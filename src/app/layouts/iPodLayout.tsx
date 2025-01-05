@@ -152,6 +152,7 @@ const IPodLayout: React.FC = () => {
   useEffect(() => {
     window.addEventListener("keydown", handleKeyboardNavigation);
     window.addEventListener("mousedown", handleMouseDown);
+
     return () => {
       window.removeEventListener("keydown", handleKeyboardNavigation);
       window.removeEventListener("mousedown", handleMouseDown);
@@ -175,7 +176,7 @@ const IPodLayout: React.FC = () => {
         <svg
           ref={svgRef}
           className="ipod-svg"
-          viewBox={isLandscape ? "0 0 550 340" : "0 0 340 550"}
+          viewBox={isLandscape ? "0 0 500 320" : "0 0 320 500"}
           xmlns="http://www.w3.org/2000/svg"
         />
       </section>
@@ -215,8 +216,10 @@ const IPodLayout: React.FC = () => {
                 style={{
                   position: "absolute",
                   width: `${dimensions.Display.width}px`,
-                  height: `${dimensions.Display.height}px`,
-                  top: "30px",
+                  height: `${
+                    dimensions.Display.height - dimensions.Header.height
+                  }px`,
+                  top: `${dimensions.Header.height}px`,
                   left: "5px",
                   background: "transparent",
                 }}
@@ -252,6 +255,7 @@ const IPodLayout: React.FC = () => {
               }}
             >
               <section className="touch-ring" />
+
               <button className="select-button" />
               <ClickWheel
                 onRingTurn={handleWheelTurn}
@@ -263,6 +267,7 @@ const IPodLayout: React.FC = () => {
                 canGoBack={menuStack.length > 0}
                 onTabStart={handleTabStart}
                 isTabMode={isTabNavigating}
+                dimensions={dimensions}
               />
             </nav>
           </section>

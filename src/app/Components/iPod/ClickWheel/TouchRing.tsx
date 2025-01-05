@@ -8,12 +8,14 @@ interface TouchRingProps {
   onTouchScrollStart?: () => void;
   onTouchScrollEnd?: () => void;
   isTabMode?: boolean;
+  style?: React.CSSProperties;
 }
 const TouchRing: React.FC<TouchRingProps> = ({
   onRingTurn,
   onBack,
   onSelect,
   isTabMode,
+  style,
 }) => {
   const [isScrolling, setIsScrolling] = useState(false);
   const lastAngleRef = useRef<number | null>(null);
@@ -115,7 +117,7 @@ const TouchRing: React.FC<TouchRingProps> = ({
       }
 
       // In tab mode or without Ctrl pressed in mouse mode
-      if (isTabMode || !isCtrlPressed) {
+      if (!isTabMode && (isTouchDevice.current || isCtrlPressed)) {
         setIsScrolling(true);
         lastAngleRef.current = getAngle(e);
         cumulativeAngleRef.current = 0;
@@ -146,14 +148,14 @@ const TouchRing: React.FC<TouchRingProps> = ({
       onTouchMove={handleMove}
       onTouchEnd={handleEnd}
       style={{
+        ...style,
         position: "absolute",
         width: "100%",
         height: "100%",
         borderRadius: "50%",
         // Disable interactions in tab mode
-        cursor: isCtrlPressed ? "pointer" : "default",
-        pointerEvents: isCtrlPressed ? "auto" : "none",
-        zIndex: isCtrlPressed ? 1 : 0,
+
+        zIndex: isCtrlPressed ? 2 : 0,
       }}
     />
   );
