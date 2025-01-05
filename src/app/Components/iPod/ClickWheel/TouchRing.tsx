@@ -26,6 +26,23 @@ const TouchRing: React.FC<TouchRingProps> = ({
   const [isCtrlPressed, setIsCtrlPressed] = useState(false);
 
   useEffect(() => {
+    // Prevent Safari elastic scrolling
+    document.body.style.overflow = "hidden";
+    document.documentElement.style.overflow = "hidden";
+    document.documentElement.style.position = "fixed";
+    document.documentElement.style.width = "100%";
+    document.documentElement.style.height = "100%";
+
+    return () => {
+      document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
+      document.documentElement.style.position = "";
+      document.documentElement.style.width = "";
+      document.documentElement.style.height = "";
+    };
+  }, []);
+
+  useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.ctrlKey) setIsCtrlPressed(true);
 
@@ -77,6 +94,8 @@ const TouchRing: React.FC<TouchRingProps> = ({
 
   const handleMove = useCallback(
     (e: React.MouseEvent | React.TouchEvent) => {
+      e.preventDefault(); // Prevent default touch behavior
+
       if (isTabMode) return;
       if (!isScrolling) return;
       if (isTouchDevice.current && "touches" in e && e.touches.length > 1)
@@ -109,12 +128,13 @@ const TouchRing: React.FC<TouchRingProps> = ({
 
   const handleStart = useCallback(
     (e: React.MouseEvent | React.TouchEvent) => {
+      e.preventDefault(); // Prevent default touch behavior
+
       if ("touches" in e) {
         isTouchDevice.current = true;
         if (e.touches.length > 1) return;
       }
 
-      // Allow touch devices always, and mouse when Ctrl is pressed
       if (isTouchDevice.current || (!isTabMode && isCtrlPressed)) {
         setIsScrolling(true);
         lastAngleRef.current = getAngle(e);
@@ -124,12 +144,17 @@ const TouchRing: React.FC<TouchRingProps> = ({
     [getAngle, isTabMode, isCtrlPressed]
   );
 
-  const handleEnd = useCallback(() => {
-    if (isTabMode) return;
-    setIsScrolling(false);
-    lastAngleRef.current = null;
-    cumulativeAngleRef.current = 0;
-  }, [isTabMode]);
+  const handleEnd = useCallback(
+    (e: React.MouseEvent | React.TouchEvent) => {
+      e.preventDefault(); // Prevent default touch behavior
+
+      if (isTabMode) return;
+      setIsScrolling(false);
+      lastAngleRef.current = null;
+      cumulativeAngleRef.current = 0;
+    },
+    [isTabMode]
+  );
 
   return (
     <div
@@ -157,6 +182,9 @@ const TouchRing: React.FC<TouchRingProps> = ({
         zIndex: isCtrlPressed ? 2 : 0,
         transition: "opacity 0.2s",
         opacity: isCtrlPressed ? 1 : 0.5,
+        overscrollBehavior: "none",
+        WebkitOverflowScrolling: "touch",
+        overflow: "hidden",
       }}
     />
   );
