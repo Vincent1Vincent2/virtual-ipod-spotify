@@ -254,9 +254,6 @@ const IPodLayout: React.FC = () => {
                 height: `${dimensions.ScrollWheel.height}px`,
               }}
             >
-              <section className="touch-ring" />
-
-              <button className="select-button" />
               <ClickWheel
                 onRingTurn={handleWheelTurn}
                 onMenuPress={handleMenuPress}
