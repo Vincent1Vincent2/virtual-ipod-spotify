@@ -56,7 +56,6 @@ npx prisma db push
 ```env
 DATABASE_URL="postgresql://..."
 SPOTIFY_CLIENT_ID="your-client-id"
-SPOTIFY_CLIENT_SECRET="your-client-secret"
 ```
 
 ### 🏃‍♂️ Kör projektet
