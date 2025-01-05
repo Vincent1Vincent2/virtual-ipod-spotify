@@ -190,7 +190,8 @@ export const AuthProviderContent: React.FC<AuthProviderProps> = ({
                 grant_type: "authorization_code",
                 code,
                 redirect_uri:
-                  process.env.NEXT_REDIRECT_URI || "http://localhost:3000/",
+                  process.env.NEXT_PUBLIC_REDIRECT_URI ||
+                  "http://localhost:3000/",
                 code_verifier: verifier,
               }),
             }
