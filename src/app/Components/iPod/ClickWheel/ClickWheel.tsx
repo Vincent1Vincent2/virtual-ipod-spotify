@@ -11,15 +11,6 @@ interface Dimensions {
   y: number;
 }
 
-interface ClickWheelControlsProps {
-  onButtonPress: (buttonId: string) => void;
-  onButtonRelease: () => void;
-  canGoBack: boolean;
-  disabled?: boolean;
-  onTabStart?: () => void;
-  isTabMode?: boolean;
-  buttonStyles?: Record<string, React.CSSProperties>;
-}
 interface ExtendedClickWheelProps extends ClickWheelProps {
   canGoBack?: boolean;
   onTabStart?: () => void;
